@@ -32,14 +32,14 @@ class WirespecAstBuilder {
                 content = ep.requestBody?.let { WsEndpoint.Content("application/json", toReference(it)) }
             )
         ),
-        responses = listOf(
+        responses = ep.responses.map { r ->
             WsEndpoint.Response(
-                status = ep.statusCode.toString(),
+                status = r.statusCode.toString(),
                 headers = emptyList(),
-                content = ep.responseBody?.let { WsEndpoint.Content("application/json", toReference(it)) },
+                content = r.body?.let { WsEndpoint.Content("application/json", toReference(it)) },
                 annotations = emptyList(),
             )
-        ),
+        },
     )
 
     fun toDefinition(wt: WireType): Definition = when (wt) {

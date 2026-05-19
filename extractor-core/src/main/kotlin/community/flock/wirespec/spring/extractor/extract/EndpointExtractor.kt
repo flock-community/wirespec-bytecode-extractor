@@ -11,9 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import java.lang.reflect.Method
 
-class EndpointExtractor(private val types: TypeExtractor) {
+class EndpointExtractor(
+    private val types: TypeExtractor,
+    private val onWarn: (String) -> Unit = {},
+) {
 
     private val params = ParamExtractor(types)
+    private val apiResponses = ApiResponseExtractor(types, onWarn)
 
     fun extract(controllerClass: Class<*>): List<Endpoint> {
         val classMapping = AnnotatedElementUtils.findMergedAnnotation(controllerClass, RequestMapping::class.java)
@@ -30,11 +34,7 @@ class EndpointExtractor(private val types: TypeExtractor) {
         val allParams = params.extractParams(method)
         val body = params.extractRequestBody(method)
         val unwrapped = ReturnTypeUnwrapper.unwrap(method)
-        val responseRef = if (unwrapped.isVoid) null else {
-            val raw = types.extract(unwrapped.type)
-            if (unwrapped.isList) WireType.ListOf(raw) else raw
-        }
-        val status = ReturnTypeUnwrapper.statusCodeFor(method, unwrapped)
+        val responses = apiResponses.extract(method, unwrapped)
 
         val needsMethodSuffix = httpMethods.size > 1
         val needsPathSuffix = methodPaths.size > 1
@@ -55,8 +55,7 @@ class EndpointExtractor(private val types: TypeExtractor) {
                         headerParams = allParams.filter { it.source == Param.Source.HEADER },
                         cookieParams = allParams.filter { it.source == Param.Source.COOKIE },
                         requestBody = body,
-                        responseBody = responseRef,
-                        statusCode = status,
+                        responses = responses,
                     )
                 }
             }

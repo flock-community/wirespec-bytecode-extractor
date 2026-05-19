@@ -30,8 +30,7 @@ class WirespecAstBuilderTest {
             ),
             queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
             requestBody = null,
-            responseBody = WireType.Ref("UserDto"),
-            statusCode = 200,
+            responses = listOf(Endpoint.Response(200, WireType.Ref("UserDto"))),
         )
 
         val ws = builder.toEndpoint(ep)

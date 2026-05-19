@@ -31,8 +31,7 @@ class EmitterTest {
             pathSegments = listOf(PathSegment.Literal("hello")),
             queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
             requestBody = null,
-            responseBody = WireType.Primitive(WireType.Primitive.Kind.STRING),
-            statusCode = 200,
+            responses = listOf(Endpoint.Response(200, WireType.Primitive(WireType.Primitive.Kind.STRING))),
         ))
         val typeDef = builder.toDefinition(WireType.Object(
             name = "UserDto",
@@ -101,8 +100,7 @@ class EmitterTest {
             headerParams = listOf(Param("_X-Hdr", Param.Source.HEADER, WireType.Primitive(WireType.Primitive.Kind.STRING))),
             cookieParams = emptyList(),
             requestBody = null,
-            responseBody = null,
-            statusCode = 204,
+            responses = listOf(Endpoint.Response(204, null)),
         ))
         emitter.write(
             outputDir = dir.toFile(),
@@ -135,8 +133,7 @@ class EmitterTest {
             pathSegments = listOf(PathSegment.Literal("hello")),
             queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
             requestBody = null,
-            responseBody = WireType.Primitive(WireType.Primitive.Kind.STRING),
-            statusCode = 200,
+            responses = listOf(Endpoint.Response(200, WireType.Primitive(WireType.Primitive.Kind.STRING))),
         ))
         val typeDef = builder.toDefinition(WireType.Object(
             name = "UserDto",
@@ -151,6 +148,32 @@ class EmitterTest {
 
         written.map { it.name }.sorted() shouldBe listOf("HelloController.ws", "types.ws")
         written.all { it.exists() } shouldBe true
+    }
+
+    @Test
+    fun `multi-response endpoint emits one response clause per status`(@TempDir dir: Path) {
+        val ep = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "MultiCtl",
+            name = "GetUser",
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal("users")),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(
+                Endpoint.Response(200, WireType.Ref("UserDto")),
+                Endpoint.Response(404, WireType.Ref("ErrorDto")),
+            ),
+        ))
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("MultiCtl" to listOf(ep)),
+            sharedTypes = emptyList(),
+        )
+        val out = File(dir.toFile(), "MultiCtl.ws").readText()
+        out shouldContain "200"
+        out shouldContain "UserDto"
+        out shouldContain "404"
+        out shouldContain "ErrorDto"
     }
 
     @Test

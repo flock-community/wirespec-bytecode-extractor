@@ -10,8 +10,7 @@ data class Endpoint(
     val headerParams: List<Param>,
     val cookieParams: List<Param>,
     val requestBody: WireType? = null,
-    val responseBody: WireType? = null,
-    val statusCode: Int = 200,
+    val responses: List<Response>,        // never empty
 ) {
     enum class HttpMethod { GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD, TRACE }
 
@@ -19,4 +18,7 @@ data class Endpoint(
         data class Literal(val value: String) : PathSegment
         data class Variable(val name: String, val type: WireType) : PathSegment
     }
+
+    /** A single declared response variant for an endpoint. */
+    data class Response(val statusCode: Int, val body: WireType?)
 }

@@ -59,7 +59,7 @@ object WirespecExtractor {
             }
 
             val types = TypeExtractor()
-            val endpoints = EndpointExtractor(types)
+            val endpoints = EndpointExtractor(types, onWarn = { msg -> config.log.warn(msg) })
             val builder = WirespecAstBuilder()
 
             val byController = controllers.associate { c ->

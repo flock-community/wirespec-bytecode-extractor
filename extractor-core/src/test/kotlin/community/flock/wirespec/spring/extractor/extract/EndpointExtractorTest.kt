@@ -79,12 +79,14 @@ class EndpointExtractorTest {
 
         val getUser = endpoints.single { it.name == "GetUser" }
         getUser.method shouldBe HttpMethod.GET
-        getUser.responseBody.shouldBeInstanceOf<WireType.Ref>().name shouldBe "Item"
-        getUser.statusCode shouldBe 200
+        val getUserResp = getUser.responses.single()
+        getUserResp.body.shouldBeInstanceOf<WireType.Ref>().name shouldBe "Item"
+        getUserResp.statusCode shouldBe 200
 
         val deleteEp = endpoints.single { it.name == "Delete" }
-        deleteEp.responseBody shouldBe null
-        deleteEp.statusCode shouldBe 204
+        val deleteResp = deleteEp.responses.single()
+        deleteResp.body shouldBe null
+        deleteResp.statusCode shouldBe 204
     }
 
     @Test

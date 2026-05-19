@@ -134,6 +134,9 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
 - Path / query / header / cookie parameters; `@RequestBody`
 - Response types, including unwrapping of `ResponseEntity`, `Mono`, `Flux`,
   `Optional`, `Callable`, `DeferredResult`
+- Multiple response statuses via springdoc `@ApiResponses` /
+  `@ApiResponse` — one Wirespec response per declared status. See
+  [Multiple responses](#multiple-responses).
 - DTO classes referenced by endpoints, with Jackson (`@JsonProperty`,
   `@JsonIgnore`), Bean Validation (`@NotNull`, `@Size`, `@Pattern`, `@Min`,
   `@Max`), and springdoc `@Schema` awareness
@@ -167,6 +170,38 @@ method) when it encounters:
 
 This monomorphization rule means controller signatures must always bind
 their generic parameters concretely.
+
+### Multiple responses
+
+Spring/springdoc lets a handler declare multiple response variants. The
+extractor reads `io.swagger.v3.oas.annotations.responses.ApiResponses` (and
+standalone `@ApiResponse`) and emits one Wirespec `Response` per entry:
+
+```kotlin
+@GetMapping("/users/{id}")
+@ApiResponses(
+    ApiResponse(responseCode = "200"),
+    ApiResponse(
+        responseCode = "404",
+        content = [Content(schema = Schema(implementation = ErrorDto::class))],
+    ),
+)
+fun getUser(@PathVariable id: String): UserDto = ...
+```
+
+Behavior:
+
+- One Wirespec response per `@ApiResponse`. Status comes from `responseCode`.
+- Body comes from `content[].schema.implementation` (or
+  `content[].array.schema.implementation` → list).
+- An `@ApiResponse` without a `content` schema falls back to the method's
+  return type **only** when its status matches the natural success status
+  (e.g. `200` for value-returning, `204` for `void`); otherwise it is
+  emitted body-less.
+- Non-numeric `responseCode`s (`"default"`, `"2XX"`) are skipped with a
+  warning.
+- Without any `@ApiResponse`(s), behavior is unchanged: one response derived
+  from the method signature plus `@ResponseStatus`.
 
 ### Known limitations (v1)
 
