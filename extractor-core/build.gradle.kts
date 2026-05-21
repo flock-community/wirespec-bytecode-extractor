@@ -12,6 +12,13 @@ kotlin {
     compilerOptions {
         // Spring's @PathVariable/@RequestParam (and our extractor) need parameter names.
         freeCompilerArgs.add("-java-parameters")
+        // The Gradle plugin embeds extractor-core and runs inside Gradle's runtime,
+        // which bundles Kotlin 2.0.21 (Gradle 8.10.2). Pinning api/language version
+        // to 2.0 prevents the 2.3 compiler from emitting calls to stdlib overloads
+        // introduced after 2.0 (e.g. the single-arg sequenceOf(element: T) added in
+        // Kotlin 2.1), which would NoSuchMethodError at runtime inside Gradle.
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
     }
 }
 

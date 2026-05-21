@@ -11,6 +11,12 @@ base.archivesName.set("wirespec-spring-extractor-gradle-plugin")
 
 kotlin {
     jvmToolchain(21)
+    compilerOptions {
+        // Plugin runs inside Gradle's runtime (Kotlin 2.0.21 in Gradle 8.10.2).
+        // See extractor-core/build.gradle.kts for full rationale.
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+    }
 }
 
 gradlePlugin {
