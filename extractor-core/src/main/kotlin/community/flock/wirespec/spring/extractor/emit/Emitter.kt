@@ -4,7 +4,10 @@ package community.flock.wirespec.spring.extractor.emit
 import arrow.core.NonEmptyList
 import arrow.core.toNonEmptyListOrNull
 import community.flock.wirespec.compiler.core.FileUri
+import community.flock.wirespec.compiler.core.parse.ast.Channel
 import community.flock.wirespec.compiler.core.parse.ast.Definition
+import community.flock.wirespec.compiler.core.parse.ast.DefinitionIdentifier
+import community.flock.wirespec.compiler.core.parse.ast.Endpoint
 import community.flock.wirespec.compiler.core.parse.ast.FieldIdentifier
 import community.flock.wirespec.compiler.core.parse.ast.Identifier
 import community.flock.wirespec.compiler.core.parse.ast.Module
@@ -52,14 +55,14 @@ class Emitter {
         val written = mutableListOf<File>()
 
         controllerDefinitions.forEach { (controller, defs) ->
-            defs.toNonEmptyListOrNull()?.let { nel ->
+            deduplicateNames(defs).toNonEmptyListOrNull()?.let { nel ->
                 val path = File(outputDir, "$controller.ws")
                 path.writeText(render(nel, "$controller.ws"))
                 written += path
             }
         }
 
-        sharedTypes.toNonEmptyListOrNull()?.let { nel ->
+        deduplicateNames(sharedTypes).toNonEmptyListOrNull()?.let { nel ->
             val path = File(outputDir, "types.ws")
             path.writeText(render(nel, "types.ws"))
             written += path
@@ -82,5 +85,44 @@ class Emitter {
         dir.walkTopDown()
             .filter { it.isFile && it.extension == "ws" }
             .forEach { it.delete() }
+    }
+
+    /**
+     * Ensure every definition in [defs] has a unique identifier. A name that
+     * appears once stays as-is; a name that appears two or more times across
+     * the file (endpoint↔endpoint, endpoint↔channel, endpoint↔type, …) gets a
+     * numeric suffix on *every* occurrence — `Foo1`, `Foo2`, `Foo3` — so no
+     * "winner" silently keeps the bare name.
+     *
+     * Types are never renamed: they're referenced from endpoints, channels,
+     * and other types, and renaming them would break those references. When a
+     * type and an endpoint/channel share a name, only the endpoint/channel
+     * receives a suffix.
+     */
+    private fun deduplicateNames(defs: List<Definition>): List<Definition> {
+        val nameCounts = defs.groupingBy { it.identifier.value }.eachCount()
+        val used = defs
+            .filter { it !is Endpoint && it !is Channel }
+            .mapTo(mutableSetOf()) { it.identifier.value }
+        return defs.map { def ->
+            val name = def.identifier.value
+            when {
+                def !is Endpoint && def !is Channel -> def
+                nameCounts.getValue(name) == 1 -> {
+                    used.add(name)
+                    def
+                }
+                else -> {
+                    var i = 1
+                    while (!used.add("$name$i")) i++
+                    val newName = "$name$i"
+                    when (def) {
+                        is Endpoint -> def.copy(identifier = DefinitionIdentifier(newName))
+                        is Channel  -> def.copy(identifier = DefinitionIdentifier(newName))
+                        else        -> def
+                    }
+                }
+            }
+        }
     }
 }

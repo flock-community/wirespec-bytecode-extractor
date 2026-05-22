@@ -2,6 +2,7 @@
 package community.flock.wirespec.spring.extractor.emit
 
 import community.flock.wirespec.spring.extractor.ast.WirespecAstBuilder
+import community.flock.wirespec.spring.extractor.model.Channel
 import community.flock.wirespec.spring.extractor.model.Endpoint
 import community.flock.wirespec.spring.extractor.model.Endpoint.HttpMethod
 import community.flock.wirespec.spring.extractor.model.Endpoint.PathSegment
@@ -184,5 +185,120 @@ class EmitterTest {
             sharedTypes = emptyList(),
         )
         written shouldBe emptyList()
+    }
+
+    @Test
+    fun `duplicate endpoint names in same file get numeric suffix on every occurrence`(@TempDir dir: Path) {
+        fun ep(name: String) = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "UserController",
+            name = name,
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal(name.lowercase())),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(200, null)),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("UserController" to listOf(ep("GetUser"), ep("GetUser"), ep("GetUser"))),
+            sharedTypes = emptyList(),
+        )
+        val out = File(dir.toFile(), "UserController.ws").readText()
+
+        out shouldContain "endpoint GetUser1 "
+        out shouldContain "endpoint GetUser2 "
+        out shouldContain "endpoint GetUser3 "
+        // No unsuffixed survivor.
+        out shouldNotContain "endpoint GetUser "
+    }
+
+    @Test
+    fun `endpoint name colliding with type name renames the endpoint only`(@TempDir dir: Path) {
+        val ep = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "OrderController",
+            name = "Order",
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal("order")),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(200, WireType.Ref("Order"))),
+        ))
+        val typeDef = builder.toDefinition(WireType.Object(
+            name = "Order",
+            fields = listOf(WireType.Field("id", WireType.Primitive(WireType.Primitive.Kind.STRING))),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("OrderController" to listOf(ep, typeDef)),
+            sharedTypes = emptyList(),
+        )
+        val out = File(dir.toFile(), "OrderController.ws").readText()
+
+        // Type keeps its bare name so the endpoint's response reference stays valid.
+        out shouldContain "type Order "
+        out shouldContain "endpoint Order1 "
+        out shouldNotContain "endpoint Order "
+    }
+
+    @Test
+    fun `endpoint and channel sharing a name both get numeric suffix`(@TempDir dir: Path) {
+        val ep = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "OrderPublisher",
+            name = "PublishOrder",
+            method = HttpMethod.POST,
+            pathSegments = listOf(PathSegment.Literal("publish")),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(204, null)),
+        ))
+        val ch = builder.toChannel(Channel(
+            ownerSimpleName = "OrderPublisher",
+            name = "PublishOrder",
+            payload = WireType.Primitive(WireType.Primitive.Kind.STRING),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("OrderPublisher" to listOf(ep, ch)),
+            sharedTypes = emptyList(),
+        )
+        val out = File(dir.toFile(), "OrderPublisher.ws").readText()
+
+        out shouldContain "endpoint PublishOrder1 "
+        out shouldContain "channel PublishOrder2 "
+        out shouldNotContain "endpoint PublishOrder "
+        out shouldNotContain "channel PublishOrder "
+    }
+
+    @Test
+    fun `no collisions leaves names untouched`(@TempDir dir: Path) {
+        val ep = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "X",
+            name = "GetA",
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal("a")),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(200, null)),
+        ))
+        val ch = builder.toChannel(Channel(
+            ownerSimpleName = "X",
+            name = "OnB",
+            payload = WireType.Primitive(WireType.Primitive.Kind.STRING),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("X" to listOf(ep, ch)),
+            sharedTypes = emptyList(),
+        )
+        val out = File(dir.toFile(), "X.ws").readText()
+
+        out shouldContain "endpoint GetA "
+        out shouldContain "channel OnB "
+        out shouldNotContain "GetA2"
+        out shouldNotContain "OnB2"
     }
 }
