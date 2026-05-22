@@ -25,7 +25,6 @@ the live code, with no manual translation step.
 
 ### Out of scope (v1)
 
-- WebFlux functional routes (`RouterFunction`) — deferred to v2.
 - `@FeignClient` interfaces.
 - `@RestControllerAdvice` exception → response mapping.
 - `MultipartFile` / file-upload bodies.
@@ -258,7 +257,6 @@ wirespec-spring-extractor/
 
 ## Open questions / future work
 
-- **v2:** WebFlux functional routes via lightweight Spring boot.
 - **v2:** `@FeignClient` interfaces (consumer-side contracts).
 - **v2:** `ResponseEntity.status(...)` reading via simple bytecode inspection.
 - **v2:** Multipart / file-upload body modeling.

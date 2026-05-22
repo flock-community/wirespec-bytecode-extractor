@@ -67,6 +67,9 @@ class GradleFixtureBuildTest {
         when (fixture.name) {
             "basic-kotlin-app" -> verifyBasicKotlinApp(workDir)
             "basic-spring-app" -> verifyBasicSpringApp(workDir)
+            "dsl-webflux-app"  -> DslFixtureVerifiers.verifyWebFluxApp(File(workDir, "build/wirespec"))
+            "dsl-mvc-app"      -> DslFixtureVerifiers.verifyMvcApp(File(workDir, "build/wirespec"))
+            "dsl-java-app"     -> DslFixtureVerifiers.verifyJavaApp(File(workDir, "build/wirespec"))
             else -> error("No verifier registered for fixture ${fixture.name}")
         }
     }

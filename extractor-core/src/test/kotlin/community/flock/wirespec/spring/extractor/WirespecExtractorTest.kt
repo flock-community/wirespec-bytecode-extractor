@@ -19,6 +19,19 @@ class WirespecExtractorTest {
         return File(classFileUrl.toURI())
     }
 
+    /**
+     * Locate every test-classes output directory of this module (Kotlin + Java).
+     * Necessary because Gradle splits Java and Kotlin output into separate
+     * directories and the extractor scans by URLClassLoader, not the JVM
+     * classpath of the test runner.
+     */
+    private fun thisModuleClassesDirs(): List<File> {
+        val kotlinDir = thisModuleClassesDir()
+        // Sibling: .../classes/kotlin/test  →  .../classes/java/test
+        val javaDir = kotlinDir.parentFile?.parentFile?.resolve("java/test")
+        return listOfNotNull(kotlinDir, javaDir?.takeIf { it.exists() })
+    }
+
     @Test
     fun `extract writes ws files for known controllers and returns counts`(@TempDir tmp: Path) {
         val out = File(tmp.toFile(), "ws").apply { mkdirs() }
@@ -34,6 +47,35 @@ class WirespecExtractorTest {
         result.controllerCount shouldBe (out.listFiles()!!.filter { it.name != "types.ws" }.size)
         result.filesWritten.map { it.name } shouldContainAll listOf("HelloController.ws")
         result.filesWritten.all { it.exists() } shouldBe true
+    }
+
+    @Test
+    fun `extract emits ws files for Spring functional DSL configuration classes`(@TempDir tmp: Path) {
+        val out = File(tmp.toFile(), "ws").apply { mkdirs() }
+        val result = WirespecExtractor.extract(
+            ExtractConfig(
+                classesDirectories = thisModuleClassesDirs(),
+                runtimeClasspath = emptyList(),
+                outputDirectory = out,
+                basePackage = "community.flock.wirespec.spring.extractor.fixtures.dsl",
+            )
+        )
+
+        val names = result.filesWritten.map { it.name }
+        names shouldContainAll listOf(
+            "WebFluxRouterConfig.ws",
+            "WebFluxCoRouterConfig.ws",
+            "MvcRouterConfig.ws",
+            "JavaWebFluxRouterConfig.ws",
+        )
+        // Sanity-check at least one DSL config's contents include the expected route + method.
+        val webfluxWs = result.filesWritten.single { it.name == "WebFluxRouterConfig.ws" }
+        val text = webfluxWs.readText()
+        text shouldContain "GET /users/{id"
+        text shouldContain "DELETE /users/{id"
+        // Java DSL also lands in its own .ws file (separate Gradle output dir).
+        val javaWs = result.filesWritten.single { it.name == "JavaWebFluxRouterConfig.ws" }
+        javaWs.readText() shouldContain "/things"
     }
 
     @Test

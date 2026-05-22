@@ -26,6 +26,8 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlin.reflect)
     implementation(libs.classgraph)
+    implementation(libs.asm)
+    implementation(libs.asm.tree)
     // `api` because WirespecAstBuilder.toEndpoint / toDefinition expose
     // Wirespec compiler AST types in their public signatures — consumers
     // of extractor-core (e.g. ExtractMojo) need those types on the
@@ -41,6 +43,8 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.reactor.core)
+    testImplementation(libs.spring.webflux)
+    testImplementation(libs.spring.webmvc)
 }
 
 tasks.test {

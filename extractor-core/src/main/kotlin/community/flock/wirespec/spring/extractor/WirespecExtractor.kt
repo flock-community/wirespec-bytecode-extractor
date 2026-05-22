@@ -6,6 +6,9 @@ import community.flock.wirespec.spring.extractor.classpath.ClasspathBuilder
 import community.flock.wirespec.spring.extractor.emit.Emitter
 import community.flock.wirespec.spring.extractor.extract.EndpointExtractor
 import community.flock.wirespec.spring.extractor.extract.TypeExtractor
+import community.flock.wirespec.spring.extractor.extract.dsl.DslBytecodeWalker
+import community.flock.wirespec.spring.extractor.extract.dsl.DslEndpointExtractor
+import community.flock.wirespec.spring.extractor.extract.dsl.DslRouteScanner
 import community.flock.wirespec.spring.extractor.ownership.TypeOwnership
 import community.flock.wirespec.spring.extractor.scan.ControllerScanner
 import java.io.File
@@ -50,7 +53,15 @@ object WirespecExtractor {
             )
             config.log.info("Found ${controllers.size} controller(s)")
 
-            val collisions = detectControllerCollisions(controllers)
+            val dslConfigs = DslRouteScanner.scan(
+                loader, scanPackages, effectiveBasePackage,
+                onWarn = { msg -> config.log.warn(msg) },
+            )
+            if (dslConfigs.isNotEmpty()) {
+                config.log.info("Found ${dslConfigs.size} functional-DSL configuration(s)")
+            }
+
+            val collisions = detectControllerCollisions(controllers + dslConfigs)
             if (collisions.isNotEmpty()) {
                 val msg = collisions.entries.joinToString("; ") { (name, classes) ->
                     "$name in [${classes.joinToString(", ")}]"
@@ -60,6 +71,7 @@ object WirespecExtractor {
 
             val types = TypeExtractor()
             val endpoints = EndpointExtractor(types, onWarn = { msg -> config.log.warn(msg) })
+            val dslEndpoints = DslEndpointExtractor(types, loader, onWarn = { msg -> config.log.warn(msg) })
             val builder = WirespecAstBuilder()
 
             val byController = controllers.associate { c ->
@@ -72,7 +84,25 @@ object WirespecExtractor {
                     emptyList()
                 }
                 c.simpleName to eps.map { it as Definition }
-            }.filterValues { it.isNotEmpty() }
+            }.toMutableMap()
+
+            for (cfg in dslConfigs) {
+                val eps = try {
+                    val routes = DslBytecodeWalker.walk(cfg)
+                    dslEndpoints.extract(cfg, routes).map(builder::toEndpoint)
+                } catch (e: WirespecExtractorException) {
+                    throw e
+                } catch (t: Throwable) {
+                    config.log.warn("Skipping DSL ${cfg.name}: ${t.message}")
+                    emptyList()
+                }
+                if (eps.isNotEmpty()) {
+                    val key = cfg.simpleName
+                    val existing = byController[key].orEmpty()
+                    byController[key] = existing + eps.map { it as Definition }
+                }
+            }
+            val byControllerFinal = byController.filterValues { it.isNotEmpty() }
 
             val allTypes = types.definitions.mapNotNull { def ->
                 try {
@@ -86,7 +116,7 @@ object WirespecExtractor {
             }
 
             val partition = TypeOwnership.partition(
-                endpointsByController = byController,
+                endpointsByController = byControllerFinal,
                 allTypes = allTypes,
                 onWarn = { msg -> config.log.warn(msg) },
             )
