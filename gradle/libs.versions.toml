@@ -6,6 +6,7 @@ maven-plugin-development = "1.0.3"
 gradle-plugin-publish = "1.3.0"
 wirespec = "0.18.9"
 classgraph = "4.8.179"
+asm = "9.7"
 spring = "6.1.14"
 jackson = "2.18.1"
 jakarta-validation = "3.1.0"
@@ -28,6 +29,10 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 # Classpath scanning
 classgraph = { module = "io.github.classgraph:classgraph", version.ref = "classgraph" }
 
+# Bytecode walking (Spring DSL route discovery)
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
+
 # Wirespec compiler + emitter
 wirespec-core = { module = "community.flock.wirespec.compiler:core-jvm", version.ref = "wirespec" }
 wirespec-emitter = { module = "community.flock.wirespec.compiler.emitters:wirespec-jvm", version.ref = "wirespec" }
@@ -35,6 +40,8 @@ wirespec-emitter = { module = "community.flock.wirespec.compiler.emitters:wiresp
 # Spring annotations (used by EndpointExtractor at build time)
 spring-web = { module = "org.springframework:spring-web", version.ref = "spring" }
 spring-context = { module = "org.springframework:spring-context", version.ref = "spring" }
+spring-webflux = { module = "org.springframework:spring-webflux", version.ref = "spring" }
+spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "spring" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version.ref = "swagger-annotations" }

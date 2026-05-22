@@ -140,6 +140,10 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
 - DTO classes referenced by endpoints, with Jackson (`@JsonProperty`,
   `@JsonIgnore`), Bean Validation (`@NotNull`, `@Size`, `@Pattern`, `@Min`,
   `@Max`), and springdoc `@Schema` awareness
+- Spring functional-DSL routes — WebFlux Kotlin `router { }` / `coRouter { }`,
+  Spring MVC Kotlin `router { }`, and the Java fluent
+  `RouterFunctions.route()` builder. See
+  [Functional DSL routes](#functional-dsl-routes).
 
 ### Generic types
 
@@ -202,6 +206,62 @@ Behavior:
   warning.
 - Without any `@ApiResponse`(s), behavior is unchanged: one response derived
   from the method signature plus `@ResponseStatus`.
+
+### Functional DSL routes
+
+Any class with at least one method returning
+`org.springframework.web.reactive.function.server.RouterFunction` (WebFlux) or
+`org.springframework.web.servlet.function.RouterFunction` (Spring MVC) is
+treated as a virtual controller. Its simple class name becomes the
+`<Name>.ws` file. Routes are discovered by **static bytecode inspection** —
+no Spring context is booted, and no DSL code is executed at extract time.
+
+Recognised:
+
+- HTTP-method calls: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS`.
+- Nesting prefixes via `String.nest { }` / `RequestPredicate.nest { }`
+  (Kotlin) and `Builder.nest(predicate, c)` / `Builder.path(prefix, c)` (Java).
+- Handler references — `handler::method` (Kotlin, compiled to a
+  `FunctionReferenceImpl` subclass) and `handler::method` (Java, compiled to
+  an `INVOKEDYNAMIC LambdaMetafactory`).
+- Request body inference: scans the resolved handler's bytecode for
+  `ServerRequest.bodyToMono(Class)` / `bodyToFlux(Class)` / `body(Class)` and
+  uses the captured class literal as the Wirespec request body.
+
+Responses default to a single `200` with no body. To declare typed responses,
+annotate the handler method with springdoc `@ApiResponses` / `@ApiResponse` —
+those are read by the same code path as annotated controllers.
+
+```kotlin
+class RouterConfig {
+    fun routes(h: UserHandler): RouterFunction<ServerResponse> = router {
+        "/users".nest {
+            GET("", h::list)
+            POST("", h::create)
+            "/{id}".nest {
+                GET("", h::getOne)
+                DELETE("", h::delete)
+            }
+        }
+    }
+}
+```
+
+**Limitations:**
+
+- Request bodies are only detected for `Class<T>` overloads of
+  `bodyToMono` / `bodyToFlux` / `body`. The
+  `ParameterizedTypeReference<T>` overloads — and bodies passed via
+  `BodyExtractors` — fall back to no body.
+- Response bodies can't be inferred from `ServerResponse.bodyValue(...)`
+  builder chains; use `@ApiResponse(content = ...)` on the handler to declare
+  them.
+- Lambda bodies in DSL handler positions (`GET("/x") { req -> ... }`) are
+  recognised but only their *paths* and HTTP methods are extracted — the
+  lambda has no `Method` to inspect for `@ApiResponse` or
+  `request.bodyToMono` calls.
+- Predicates other than `path()` / `nest()` (`accept(...)`, `contentType(...)`,
+  `headers(...)`) are ignored for path purposes.
 
 ### Known limitations (v1)
 
