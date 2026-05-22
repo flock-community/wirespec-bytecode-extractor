@@ -144,6 +144,8 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
   Spring MVC Kotlin `router { }`, and the Java fluent
   `RouterFunctions.route()` builder. See
   [Functional DSL routes](#functional-dsl-routes).
+- Spring Kafka listeners and producers — emitted as Wirespec
+  `channel` definitions. See [Kafka extraction](#kafka-extraction).
 
 ### Generic types
 
@@ -262,6 +264,32 @@ class RouterConfig {
   `request.bodyToMono` calls.
 - Predicates other than `path()` / `nest()` (`accept(...)`, `contentType(...)`,
   `headers(...)`) are ignored for path purposes.
+
+### Kafka extraction
+
+In addition to HTTP endpoints, the extractor discovers Spring Kafka
+listeners and producers and emits them as Wirespec `channel` definitions.
+
+- **Consumers**: methods annotated with `@KafkaListener`, and methods
+  annotated with `@KafkaHandler` inside a class-level `@KafkaListener`.
+  The payload type is taken from the `@Payload` parameter, or the single
+  non-meta parameter, with `ConsumerRecord<K, V>`, `Message<T>`, and
+  `List<T>` (batch) unwrapped to the value type.
+
+- **Producers**: methods that call `KafkaTemplate.send(...)`. The value
+  type is recovered from the `KafkaTemplate<K, V>` field's generic
+  signature. Each enclosing method produces one channel.
+
+Channels are named after the handler/sender method (`onOrderCreated` →
+`OnOrderCreated`) and grouped into the `.ws` file of the owning class —
+the same convention used for HTTP endpoints. Topic names are not read;
+they are typically property placeholders at extract time. Spring Kafka
+does not need to be on the extractor's classpath — extraction cleanly
+no-ops in projects that don't use it.
+
+**Out of scope (v1):** `@SendTo` on listener return values; producers
+passing `ProducerRecord<K, V>` or `Message<?>` to `send(...)`; keys,
+headers, consumer groups, and topic-to-channel name resolution.
 
 ### Known limitations (v1)
 
