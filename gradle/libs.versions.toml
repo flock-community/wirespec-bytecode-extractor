@@ -8,6 +8,7 @@ wirespec = "0.18.9"
 classgraph = "4.8.179"
 asm = "9.7"
 spring = "6.1.14"
+spring-kafka = "3.2.4"
 jackson = "2.18.1"
 jakarta-validation = "3.1.0"
 swagger-annotations = "2.2.28"
@@ -42,6 +43,7 @@ spring-web = { module = "org.springframework:spring-web", version.ref = "spring"
 spring-context = { module = "org.springframework:spring-context", version.ref = "spring" }
 spring-webflux = { module = "org.springframework:spring-webflux", version.ref = "spring" }
 spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "spring" }
+spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version.ref = "swagger-annotations" }

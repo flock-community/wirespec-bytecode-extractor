@@ -45,6 +45,11 @@ dependencies {
     testImplementation(libs.reactor.core)
     testImplementation(libs.spring.webflux)
     testImplementation(libs.spring.webmvc)
+    // Spring Kafka is referenced ONLY from test code (real annotations/types
+    // for the scanner tests). It is deliberately not on the main classpath:
+    // extractor-core's scanners use string-based class-name lookups so the
+    // extractor cleanly no-ops on projects that don't use Spring Kafka.
+    testImplementation(libs.spring.kafka)
 }
 
 tasks.test {
