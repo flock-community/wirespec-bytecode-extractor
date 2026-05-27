@@ -301,4 +301,66 @@ class EmitterTest {
         out shouldNotContain "GetA2"
         out shouldNotContain "OnB2"
     }
+
+    @Test
+    fun `same endpoint name in different controller files gets unique suffix across files`(@TempDir dir: Path) {
+        fun ep(controller: String) = builder.toEndpoint(Endpoint(
+            controllerSimpleName = controller,
+            name = "GetUser",
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal("user")),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(200, null)),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf(
+                "ControllerA" to listOf(ep("ControllerA")),
+                "ControllerB" to listOf(ep("ControllerB")),
+            ),
+            sharedTypes = emptyList(),
+        )
+        val a = File(dir.toFile(), "ControllerA.ws").readText()
+        val b = File(dir.toFile(), "ControllerB.ws").readText()
+
+        // No unsuffixed survivor in either file.
+        a shouldNotContain "endpoint GetUser "
+        b shouldNotContain "endpoint GetUser "
+        // Globally distinct names, assigned deterministically by controller name.
+        a shouldContain "endpoint GetUser1 "
+        b shouldContain "endpoint GetUser2 "
+    }
+
+    @Test
+    fun `endpoint colliding with a shared type name is suffixed across files`(@TempDir dir: Path) {
+        val ep = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "OrderController",
+            name = "Order",
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal("order")),
+            queryParams = emptyList(), headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(200, WireType.Ref("Order"))),
+        ))
+        val typeDef = builder.toDefinition(WireType.Object(
+            name = "Order",
+            fields = listOf(WireType.Field("id", WireType.Primitive(WireType.Primitive.Kind.STRING))),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("OrderController" to listOf(ep)),
+            sharedTypes = listOf(typeDef),
+        )
+        val controller = File(dir.toFile(), "OrderController.ws").readText()
+        val types = File(dir.toFile(), "types.ws").readText()
+
+        // Shared type keeps its bare name so the endpoint's reference stays valid.
+        types shouldContain "type Order "
+        // Endpoint in a different file must still yield to the type.
+        controller shouldContain "endpoint Order1 "
+        controller shouldNotContain "endpoint Order "
+    }
 }

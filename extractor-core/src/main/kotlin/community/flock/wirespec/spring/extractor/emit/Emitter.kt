@@ -54,15 +54,17 @@ class Emitter {
 
         val written = mutableListOf<File>()
 
-        controllerDefinitions.forEach { (controller, defs) ->
-            deduplicateNames(defs).toNonEmptyListOrNull()?.let { nel ->
+        val (dedupedControllers, dedupedShared) = deduplicateNames(controllerDefinitions, sharedTypes)
+
+        dedupedControllers.forEach { (controller, defs) ->
+            defs.toNonEmptyListOrNull()?.let { nel ->
                 val path = File(outputDir, "$controller.ws")
                 path.writeText(render(nel, "$controller.ws"))
                 written += path
             }
         }
 
-        deduplicateNames(sharedTypes).toNonEmptyListOrNull()?.let { nel ->
+        dedupedShared.toNonEmptyListOrNull()?.let { nel ->
             val path = File(outputDir, "types.ws")
             path.writeText(render(nel, "types.ws"))
             written += path
@@ -88,25 +90,37 @@ class Emitter {
     }
 
     /**
-     * Ensure every definition in [defs] has a unique identifier. A name that
-     * appears once stays as-is; a name that appears two or more times across
-     * the file (endpoint↔endpoint, endpoint↔channel, endpoint↔type, …) gets a
-     * numeric suffix on *every* occurrence — `Foo1`, `Foo2`, `Foo3` — so no
-     * "winner" silently keeps the bare name.
+     * Ensure every definition is uniquely named across *all* emitted files, not
+     * just within one. A name that appears exactly once anywhere stays as-is; a
+     * name that appears two or more times (endpoint↔endpoint across files,
+     * endpoint↔channel, endpoint↔type, …) gets a numeric suffix on *every*
+     * occurrence — `Foo1`, `Foo2`, `Foo3` — so no "winner" silently keeps the
+     * bare name.
      *
-     * Types are never renamed: they're referenced from endpoints, channels,
-     * and other types, and renaming them would break those references. When a
-     * type and an endpoint/channel share a name, only the endpoint/channel
-     * receives a suffix.
+     * Types are never renamed: they're referenced by name from endpoints,
+     * channels, and other types (across files via `types.ws`), and renaming
+     * them would break those references. Every type name is reserved up front;
+     * when a type and an endpoint/channel share a name, only the
+     * endpoint/channel receives a suffix.
+     *
+     * Renaming endpoints/channels is safe globally because nothing references
+     * them — they are leaves in the reference graph.
      */
-    private fun deduplicateNames(defs: List<Definition>): List<Definition> {
-        val nameCounts = defs.groupingBy { it.identifier.value }.eachCount()
-        val used = defs
+    private fun deduplicateNames(
+        controllerDefinitions: Map<String, List<Definition>>,
+        sharedTypes: List<Definition>,
+    ): Pair<Map<String, List<Definition>>, List<Definition>> {
+        val allDefs = controllerDefinitions.values.flatten() + sharedTypes
+        val nameCounts = allDefs.groupingBy { it.identifier.value }.eachCount()
+        // Reserve every type name first so a suffixed endpoint never collides
+        // with a type called `Foo1` either.
+        val used = allDefs
             .filter { it !is Endpoint && it !is Channel }
             .mapTo(mutableSetOf()) { it.identifier.value }
-        return defs.map { def ->
+
+        fun rename(def: Definition): Definition {
             val name = def.identifier.value
-            when {
+            return when {
                 def !is Endpoint && def !is Channel -> def
                 nameCounts.getValue(name) == 1 -> {
                     used.add(name)
@@ -124,5 +138,15 @@ class Emitter {
                 }
             }
         }
+
+        // Assign suffixes in a deterministic order — controllers by name, then
+        // shared types — so emitted names don't shuffle when the classpath scan
+        // order changes between builds.
+        val dedupedControllers = linkedMapOf<String, List<Definition>>()
+        controllerDefinitions.keys.sorted().forEach { controller ->
+            dedupedControllers[controller] = controllerDefinitions.getValue(controller).map(::rename)
+        }
+        val dedupedShared = sharedTypes.map(::rename)
+        return dedupedControllers to dedupedShared
     }
 }

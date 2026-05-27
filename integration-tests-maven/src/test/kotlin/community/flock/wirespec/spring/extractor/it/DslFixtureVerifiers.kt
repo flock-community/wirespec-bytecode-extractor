@@ -38,9 +38,11 @@ object DslFixtureVerifiers {
         val itemRouter = (wsDir / "ItemRouterConfig.ws").readText()
 
         // All HTTP methods declared in the DSL are extracted, including those
-        // declared two `nest` levels deep.
-        itemRouter shouldContain "endpoint List GET /items"
-        itemRouter shouldContain "endpoint Create POST"
+        // declared two `nest` levels deep. `List`/`Create` also exist in the
+        // Category and Promo configs, so global dedup suffixes every occurrence
+        // (Category=1, Item=2, Promo=3 — controllers ordered by name).
+        itemRouter shouldContain "endpoint List2 GET /items"
+        itemRouter shouldContain "endpoint Create2 POST"
         itemRouter shouldContain "endpoint BulkUpsert POST"
         itemRouter shouldContain "/items/bulk"
         itemRouter shouldContain "endpoint GetOne GET /items/{id"
@@ -50,7 +52,7 @@ object DslFixtureVerifiers {
         itemRouter shouldContain "endpoint Delete DELETE /items/{id"
 
         // bodyToMono(Class<T>) is inferred as the request body.
-        itemRouter shouldMatch Regex("(?s).*endpoint Create POST ItemDto /items\\s*->\\s*\\{.*")
+        itemRouter shouldMatch Regex("(?s).*endpoint Create2 POST ItemDto /items\\s*->\\s*\\{.*")
 
         // bodyToFlux(Class<T>) is inferred as a list body.
         itemRouter shouldMatch Regex("(?s).*endpoint BulkUpsert POST ItemDto\\[] /items/bulk.*")
@@ -67,16 +69,16 @@ object DslFixtureVerifiers {
         itemRouter shouldMatch Regex("(?s).*endpoint Delete DELETE /items/\\{id[^}]*}\\s*->\\s*\\{\\s*200\\s*->\\s*Unit.*")
 
         val categoryRouter = (wsDir / "CategoryRouterConfig.ws").readText()
-        categoryRouter shouldContain "endpoint List GET /categories"
-        categoryRouter shouldContain "endpoint Create POST CategoryDto /categories"
+        categoryRouter shouldContain "endpoint List1 GET /categories"
+        categoryRouter shouldContain "endpoint Create1 POST CategoryDto /categories"
         // CategoryDto is only referenced by this config — it stays controller-local.
         categoryRouter shouldContain "type CategoryDto"
 
         // coRouter: suspend handlers are recognised and their `bodyToMono` body
         // extraction works through the suspend signature too.
         val promo = (wsDir / "PromoCoRouterConfig.ws").readText()
-        promo shouldContain "endpoint List GET /promos"
-        promo shouldContain "endpoint Create POST ItemDto /promos"
+        promo shouldContain "endpoint List3 GET /promos"
+        promo shouldContain "endpoint Create3 POST ItemDto /promos"
 
         // Annotated @RestController coexists in the same project / output set.
         val health = (wsDir / "HealthController.ws").readText()
@@ -103,6 +105,28 @@ object DslFixtureVerifiers {
             assertTrue(!Regex("(?m)^\\s*(type|enum|refined)\\s+$fw\\b").containsMatchIn(combined)) {
                 "Spring framework type $fw leaked as a Wirespec definition:\n$combined"
             }
+        }
+
+        // Every top-level definition name must be globally unique across ALL
+        // emitted files — not just within one file.
+        assertGloballyUniqueNames(wsDir)
+    }
+
+    /**
+     * Asserts that no top-level Wirespec definition name (endpoint/channel/type/
+     * enum/refined) appears in more than one `.ws` file, nor twice in the same
+     * file. This is the cross-file uniqueness guarantee the emitter must hold.
+     */
+    private fun assertGloballyUniqueNames(wsDir: File) {
+        val nameRegex = Regex("(?m)^(?:endpoint|channel|type|enum|refined)\\s+(`?[A-Za-z0-9_]+`?)")
+        val namesByFile = wsDir.listFiles { f -> f.isFile && f.extension == "ws" }!!
+            .associate { f -> f.name to nameRegex.findAll(f.readText()).map { it.groupValues[1].trim('`') }.toList() }
+        val duplicates = namesByFile.values.flatten()
+            .groupingBy { it }.eachCount()
+            .filter { it.value > 1 }
+        assertTrue(duplicates.isEmpty()) {
+            "Definition names must be globally unique across all .ws files, but found duplicates: " +
+                "${duplicates.keys}\nNames per file: $namesByFile"
         }
     }
 
