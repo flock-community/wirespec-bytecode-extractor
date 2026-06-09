@@ -50,6 +50,14 @@ dependencies {
     // extractor-core's scanners use string-based class-name lookups so the
     // extractor cleanly no-ops on projects that don't use Spring Kafka.
     testImplementation(libs.spring.kafka)
+    testImplementation(libs.spring.jms)
+    testImplementation(libs.spring.messaging)
+    testImplementation(libs.spring.rabbit)
+    testImplementation(libs.spring.pulsar)
+    testImplementation(libs.spring.integration.core)
+    // spring-jms declares jakarta.jms-api as optional, so it must be added
+    // explicitly for tests that reference jakarta.jms.* types directly.
+    testImplementation(libs.jakarta.jms.api)
 }
 
 tasks.test {

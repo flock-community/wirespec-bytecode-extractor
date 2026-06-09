@@ -1,43 +1,40 @@
-package community.flock.wirespec.spring.extractor.extract.kafka
+package community.flock.wirespec.spring.extractor.extract.messaging
 
 import community.flock.wirespec.spring.extractor.extract.TypeExtractor
 import community.flock.wirespec.spring.extractor.model.Channel
 
 /**
- * Turns Kafka scan results into [Channel] domain values. Payload selection is
- * delegated to [KafkaPayloadSelector]; the resolved JVM [java.lang.reflect.Type]
- * is then converted by [TypeExtractor] so existing DTO/enum/refined logic is
- * reused (Jackson naming, validation constraints, generic flattening, nullability).
+ * Turns messaging scan results into [Channel] domain values. Payload selection
+ * is delegated to [MessagingPayloadSelector]; the resolved JVM type is converted
+ * by [TypeExtractor] so existing DTO/enum/refined logic is reused.
  *
- * Channel naming = PascalCase(method name), matching the existing endpoint
- * naming convention used by HTTP extraction.
+ * Channel naming matches HTTP/Kafka: PascalCase(method name) for consumers,
+ * PascalCase(enclosing method) for producers (with a value-type suffix when one
+ * method sends multiple types).
  */
-internal class KafkaChannelExtractor(
+internal class MessagingChannelExtractor(
     private val types: TypeExtractor,
     private val onWarn: (String) -> Unit = {},
 ) {
 
-    /** Build channels from consumer (listener) sites. */
-    fun fromListenerSites(sites: List<KafkaListenerScanner.Site>): List<Channel> =
+    /** Build channels from consumer (listener) sites for the given broker. */
+    fun fromListenerSites(sites: List<MessagingListenerScanner.Site>, broker: MessagingBroker): List<Channel> =
         sites.mapNotNull { site ->
-            when (val r = KafkaPayloadSelector.select(site.method)) {
-                is KafkaPayloadSelector.Result.Selected -> Channel(
+            when (val r = MessagingPayloadSelector.select(site.method, broker)) {
+                is MessagingPayloadSelector.Result.Selected -> Channel(
                     ownerSimpleName = site.ownerClass.simpleName,
                     name = pascalCase(site.method.name),
                     payload = types.extract(r.payloadType),
                 )
-                is KafkaPayloadSelector.Result.Skipped -> {
-                    onWarn("kafka.consumer: skipped ${site.ownerClass.name}.${site.method.name}: ${r.reason}")
+                is MessagingPayloadSelector.Result.Skipped -> {
+                    onWarn("messaging.${broker.id}.consumer: skipped ${site.ownerClass.name}.${site.method.name}: ${r.reason}")
                     null
                 }
             }
         }
 
     /** Build channels from producer (send) sites. */
-    fun fromProducerSites(sites: List<KafkaProducerBytecodeWalker.ProducerSite>): List<Channel> {
-        // Multiple sites with the same (ownerClass, enclosingMethod, valueClass)
-        // were already collapsed by the walker; if the same enclosing method
-        // produces different valueClasses, disambiguate via TypeSimpleName suffix.
+    fun fromProducerSites(sites: List<MessagingProducerWalker.ProducerSite>): List<Channel> {
         val byMethodKey = sites.groupBy { Triple(it.ownerClass, it.enclosingMethod, it.valueClass) }
             .keys.toList()
         val methodCounts = byMethodKey.groupingBy { it.first to it.second }.eachCount()

@@ -113,6 +113,7 @@ class FixtureBuildTest {
             "dsl-mvc-app"      -> DslFixtureVerifiers.verifyMvcApp(File(workDir, "target/wirespec"))
             "dsl-java-app"     -> DslFixtureVerifiers.verifyJavaApp(File(workDir, "target/wirespec"))
             "kafka-app"        -> KafkaFixtureVerifier.verify(File(workDir, "target/wirespec"))
+            "messaging-app"    -> MessagingFixtureVerifier.verify(File(workDir, "target/wirespec"))
             else -> error("No verifier registered for fixture ${fixture.name}")
         }
     }

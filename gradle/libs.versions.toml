@@ -9,8 +9,12 @@ classgraph = "4.8.179"
 asm = "9.7"
 spring = "6.1.14"
 spring-kafka = "3.2.4"
+spring-amqp = "3.1.7"
+spring-pulsar = "1.0.8"
+spring-integration = "6.2.7"
 jackson = "2.18.1"
 jakarta-validation = "3.1.0"
+jakarta-jms = "3.1.0"
 swagger-annotations = "2.2.28"
 reactor = "3.7.0"
 junit = "5.11.3"
@@ -44,6 +48,12 @@ spring-context = { module = "org.springframework:spring-context", version.ref = 
 spring-webflux = { module = "org.springframework:spring-webflux", version.ref = "spring" }
 spring-webmvc = { module = "org.springframework:spring-webmvc", version.ref = "spring" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
+spring-jms = { module = "org.springframework:spring-jms", version.ref = "spring" }
+spring-messaging = { module = "org.springframework:spring-messaging", version.ref = "spring" }
+spring-rabbit = { module = "org.springframework.amqp:spring-rabbit", version.ref = "spring-amqp" }
+spring-pulsar = { module = "org.springframework.pulsar:spring-pulsar", version.ref = "spring-pulsar" }
+spring-integration-core = { module = "org.springframework.integration:spring-integration-core", version.ref = "spring-integration" }
+jakarta-jms-api = { module = "jakarta.jms:jakarta.jms-api", version.ref = "jakarta-jms" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version.ref = "swagger-annotations" }

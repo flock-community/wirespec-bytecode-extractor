@@ -71,6 +71,7 @@ class GradleFixtureBuildTest {
             "dsl-mvc-app"      -> DslFixtureVerifiers.verifyMvcApp(File(workDir, "build/wirespec"))
             "dsl-java-app"     -> DslFixtureVerifiers.verifyJavaApp(File(workDir, "build/wirespec"))
             "kafka-app"        -> KafkaFixtureVerifier.verify(File(workDir, "build/wirespec"))
+            "messaging-app"    -> MessagingFixtureVerifier.verify(File(workDir, "build/wirespec"))
             else -> error("No verifier registered for fixture ${fixture.name}")
         }
     }
