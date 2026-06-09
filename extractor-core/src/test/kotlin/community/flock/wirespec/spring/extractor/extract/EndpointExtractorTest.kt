@@ -73,6 +73,16 @@ class EndpointExtractorTest {
     }
 
     @Test
+    fun `enum path variable is emitted as a Ref to the enum, not String`() {
+        val ep = EndpointExtractor(TypeExtractor())
+            .extract(ParamsController::class.java)
+            .single { it.name == "GetByRole" }
+        val variable = ep.pathSegments.filterIsInstance<PathSegment.Variable>().single()
+        variable.name shouldBe "role"
+        variable.type shouldBe WireType.Ref("Role")
+    }
+
+    @Test
     fun `suspend endpoint exposes the Continuation type-arg as the response body`() {
         val types = TypeExtractor()
         val endpoints = EndpointExtractor(types).extract(SuspendController::class.java)

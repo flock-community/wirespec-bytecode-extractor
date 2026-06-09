@@ -32,6 +32,7 @@ class EndpointExtractor(
         val httpMethods = if (mapping.method.isEmpty()) listOf(RequestMethod.GET) else mapping.method.toList()
 
         val allParams = params.extractParams(method)
+        val pathParamTypes = allParams.filter { it.source == Param.Source.PATH }.associate { it.name to it.type }
         val body = params.extractRequestBody(method)
         val unwrapped = ReturnTypeUnwrapper.unwrap(method)
         val responses = apiResponses.extract(method, unwrapped)
@@ -50,7 +51,7 @@ class EndpointExtractor(
                         controllerSimpleName = controllerClass.simpleName,
                         name = name,
                         method = rm.toHttpMethod(),
-                        pathSegments = parsePath(joinPath(cp, mp)),
+                        pathSegments = parsePath(joinPath(cp, mp), pathParamTypes),
                         queryParams = allParams.filter { it.source == Param.Source.QUERY },
                         headerParams = allParams.filter { it.source == Param.Source.HEADER },
                         cookieParams = allParams.filter { it.source == Param.Source.COOKIE },
@@ -68,11 +69,20 @@ class EndpointExtractor(
         return listOfNotNull(left, right).joinToString("/")
     }
 
-    internal fun parsePath(path: String): List<PathSegment> =
+    internal fun parsePath(
+        path: String,
+        pathParamTypes: Map<String, WireType> = emptyMap(),
+    ): List<PathSegment> =
         path.split('/').filter { it.isNotBlank() }.map { seg ->
             val match = Regex("""^\{([^:}]+)(?::[^}]+)?}$""").matchEntire(seg)
-            if (match != null) PathSegment.Variable(match.groupValues[1], WireType.Primitive(WireType.Primitive.Kind.STRING))
-            else PathSegment.Literal(seg)
+            if (match != null) {
+                val varName = match.groupValues[1]
+                // Resolve the variable's type from its @PathVariable parameter so non-String
+                // path variables (enums, refined types, …) surface correctly; fall back to
+                // STRING when there's no matching parameter to bind to.
+                val type = pathParamTypes[varName] ?: WireType.Primitive(WireType.Primitive.Kind.STRING)
+                PathSegment.Variable(varName, type)
+            } else PathSegment.Literal(seg)
         }
 
     internal fun pascalCase(name: String): String =
