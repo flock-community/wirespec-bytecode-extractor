@@ -50,6 +50,11 @@ dependencies {
     // extractor-core's scanners use string-based class-name lookups so the
     // extractor cleanly no-ops on projects that don't use Spring Kafka.
     testImplementation(libs.spring.kafka)
+    testImplementation(libs.spring.jms)
+    testImplementation(libs.spring.messaging)
+    testImplementation(libs.spring.rabbit)
+    testImplementation(libs.spring.pulsar)
+    testImplementation(libs.spring.integration.core)
 }
 
 tasks.test {
