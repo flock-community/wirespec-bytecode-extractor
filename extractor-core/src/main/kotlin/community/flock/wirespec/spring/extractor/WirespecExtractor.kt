@@ -9,10 +9,11 @@ import community.flock.wirespec.spring.extractor.extract.TypeExtractor
 import community.flock.wirespec.spring.extractor.extract.dsl.DslBytecodeWalker
 import community.flock.wirespec.spring.extractor.extract.dsl.DslEndpointExtractor
 import community.flock.wirespec.spring.extractor.extract.dsl.DslRouteScanner
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaChannelExtractor
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaListenerScanner
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaProducerBytecodeWalker
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaProducerScanner
+import community.flock.wirespec.spring.extractor.extract.messaging.MessagingBroker
+import community.flock.wirespec.spring.extractor.extract.messaging.MessagingChannelExtractor
+import community.flock.wirespec.spring.extractor.extract.messaging.MessagingListenerScanner
+import community.flock.wirespec.spring.extractor.extract.messaging.MessagingProducerScanner
+import community.flock.wirespec.spring.extractor.extract.messaging.MessagingProducerWalker
 import community.flock.wirespec.spring.extractor.ownership.TypeOwnership
 import community.flock.wirespec.spring.extractor.scan.ControllerScanner
 import java.io.File
@@ -107,41 +108,38 @@ object WirespecExtractor {
                 }
             }
 
-            // -- Kafka consumers --------------------------------------------------
-            val listenerSites = KafkaListenerScanner.scan(
-                loader, scanPackages, effectiveBasePackage,
-                onWarn = { msg -> config.log.warn(msg) },
-            )
-            if (listenerSites.isNotEmpty()) {
-                config.log.info("Found ${listenerSites.size} @KafkaListener method(s)")
-            }
-            val kafkaExtractor = KafkaChannelExtractor(types, onWarn = { msg -> config.log.warn(msg) })
-            val consumerChannels = kafkaExtractor.fromListenerSites(listenerSites)
-            for (channel in consumerChannels) {
-                val ws = builder.toChannel(channel)
-                val key = channel.ownerSimpleName
-                val existing = byController[key].orEmpty()
-                byController[key] = existing + (ws as Definition)
-            }
+            // -- Messaging channels (Kafka, JMS, Rabbit, Pulsar, Spring Integration) ----
+            val messagingExtractor = MessagingChannelExtractor(types, onWarn = { msg -> config.log.warn(msg) })
+            for (broker in MessagingBroker.ALL) {
+                val listenerSites = MessagingListenerScanner.scan(
+                    loader, scanPackages, effectiveBasePackage, broker,
+                    onWarn = { msg -> config.log.warn(msg) },
+                )
+                if (listenerSites.isNotEmpty()) {
+                    config.log.info("Found ${listenerSites.size} ${broker.id} listener method(s)")
+                }
+                for (channel in messagingExtractor.fromListenerSites(listenerSites, broker)) {
+                    val ws = builder.toChannel(channel)
+                    val key = channel.ownerSimpleName
+                    byController[key] = byController[key].orEmpty() + (ws as Definition)
+                }
 
-            // -- Kafka producers --------------------------------------------------
-            val templateFields = KafkaProducerScanner.scan(
-                loader, scanPackages, effectiveBasePackage,
-                onWarn = { msg -> config.log.warn(msg) },
-            )
-            if (templateFields.isNotEmpty()) {
-                config.log.info("Found ${templateFields.size} KafkaTemplate field(s)")
-            }
-            val producerOwners = templateFields.map { it.ownerClass }.distinct()
-            val producerSites = producerOwners.flatMap { owner ->
-                KafkaProducerBytecodeWalker.walk(owner, templateFields, onWarn = { msg -> config.log.warn(msg) })
-            }
-            val producerChannels = kafkaExtractor.fromProducerSites(producerSites)
-            for (channel in producerChannels) {
-                val ws = builder.toChannel(channel)
-                val key = channel.ownerSimpleName
-                val existing = byController[key].orEmpty()
-                byController[key] = existing + (ws as Definition)
+                val templateFields = MessagingProducerScanner.scan(
+                    loader, scanPackages, effectiveBasePackage, broker,
+                    onWarn = { msg -> config.log.warn(msg) },
+                )
+                if (templateFields.isNotEmpty()) {
+                    config.log.info("Found ${templateFields.size} ${broker.id} template field(s)")
+                }
+                val producerOwners = templateFields.map { it.ownerClass }.distinct()
+                val producerSites = producerOwners.flatMap { owner ->
+                    MessagingProducerWalker.walk(owner, templateFields, broker, onWarn = { msg -> config.log.warn(msg) })
+                }
+                for (channel in messagingExtractor.fromProducerSites(producerSites)) {
+                    val ws = builder.toChannel(channel)
+                    val key = channel.ownerSimpleName
+                    byController[key] = byController[key].orEmpty() + (ws as Definition)
+                }
             }
 
             val byControllerFinal = byController.filterValues { it.isNotEmpty() }
