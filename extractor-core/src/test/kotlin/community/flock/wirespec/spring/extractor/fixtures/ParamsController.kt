@@ -9,9 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import community.flock.wirespec.spring.extractor.fixtures.dto.Role
 
 @RestController
 class ParamsController {
+
+    @GetMapping("/users/{role}")
+    fun getByRole(@PathVariable role: Role): String = ""
 
     @GetMapping("/items/{id}")
     fun getItem(

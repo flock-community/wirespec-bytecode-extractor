@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.*;
  * `UserDto` (referenced only by UserController) moves into
  * `UserController.ws`.
  *
- * Note: @RequestParam (not @PathVariable) is used because path segments are
- * currently always emitted as String in the Wirespec AST; query parameters
- * preserve the real binding type.
+ * Note: @RequestParam is used here to exercise query-parameter type binding;
+ * both path and query parameters preserve the real binding type in the
+ * Wirespec AST.
  */
 @RestController
 @RequestMapping("/admins")
