@@ -43,6 +43,9 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.reactor.core)
+    // JSpecify nullness annotations — used only by test fixtures that exercise
+    // @Nullable / @NonNull (TYPE_USE) and @NullMarked extraction.
+    testImplementation(libs.jspecify)
     testImplementation(libs.spring.webflux)
     testImplementation(libs.spring.webmvc)
     // Spring Kafka is referenced ONLY from test code (real annotations/types
