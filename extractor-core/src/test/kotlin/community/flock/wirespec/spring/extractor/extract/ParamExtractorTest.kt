@@ -1,6 +1,7 @@
 // src/test/kotlin/community/flock/wirespec/spring/extractor/extract/ParamExtractorTest.kt
 package community.flock.wirespec.spring.extractor.extract
 
+import community.flock.wirespec.spring.extractor.fixtures.NullableParamsController
 import community.flock.wirespec.spring.extractor.fixtures.ParamsController
 import community.flock.wirespec.spring.extractor.fixtures.SuspendController
 import community.flock.wirespec.spring.extractor.model.Param.Source
@@ -97,6 +98,41 @@ class ParamExtractorTest {
         val defNames = types.definitions.map { definitionName(it) }
         defNames shouldNotContain "Item"
         defNames shouldNotContain "Continuation"
+    }
+
+    @Test
+    fun `parameter nullability is applied across every binding source`() {
+        val m = NullableParamsController::class.java.declaredMethods.first { it.name == "get" }
+        val params = ParamExtractor(TypeExtractor()).extractParams(m).associateBy { it.name }
+
+        // Path variables are part of the URL → always required → non-null.
+        params.getValue("id").type.nullable shouldBe false
+        // Required query param with a non-null Kotlin type → non-null.
+        params.getValue("q").type.nullable shouldBe false
+        // required = false + nullable Kotlin type → nullable.
+        params.getValue("optional").type.nullable shouldBe true
+        // A primitive can never be null even with a defaultValue → non-null.
+        params.getValue("size").type.nullable shouldBe false
+        // required = false header / cookie → nullable.
+        params.getValue("X-Trace").type.nullable shouldBe true
+        params.getValue("session").type.nullable shouldBe true
+    }
+
+    @Test
+    fun `Optional query parameter is unwrapped to a nullable inner type`() {
+        val m = NullableParamsController::class.java.declaredMethods.first { it.name == "get" }
+        val maybe = ParamExtractor(TypeExtractor()).extractParams(m).single { it.name == "maybe" }
+        maybe.type shouldBe WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = true)
+    }
+
+    @Test
+    fun `request body nullability follows the @RequestBody required flag and type`() {
+        val pe = ParamExtractor(TypeExtractor())
+        val nullableBody = NullableParamsController::class.java.declaredMethods.first { it.name == "post" }
+        val requiredBody = NullableParamsController::class.java.declaredMethods.first { it.name == "postRequired" }
+
+        pe.extractRequestBody(nullableBody)!!.nullable shouldBe true
+        pe.extractRequestBody(requiredBody)!!.nullable shouldBe false
     }
 
     private fun definitionName(w: WireType): String? = when (w) {

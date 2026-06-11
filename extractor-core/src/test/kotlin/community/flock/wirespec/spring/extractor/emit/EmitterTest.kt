@@ -11,6 +11,7 @@ import community.flock.wirespec.spring.extractor.model.WireType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldMatch
 import io.kotest.matchers.string.shouldNotContain
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -112,6 +113,44 @@ class EmitterTest {
 
         out shouldContain "`_filter`"
         out shouldContain "`_X-Hdr`"
+    }
+
+    @Test
+    fun `nullable query params and fields render with a trailing question mark`(@TempDir dir: Path) {
+        val ep = builder.toEndpoint(Endpoint(
+            controllerSimpleName = "SearchController",
+            name = "Search",
+            method = HttpMethod.GET,
+            pathSegments = listOf(PathSegment.Literal("search")),
+            queryParams = listOf(
+                Param("q", Param.Source.QUERY, WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = false)),
+                Param("cursor", Param.Source.QUERY, WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = true)),
+            ),
+            headerParams = emptyList(), cookieParams = emptyList(),
+            requestBody = null,
+            responses = listOf(Endpoint.Response(200, null)),
+        ))
+        val typeDef = builder.toDefinition(WireType.Object(
+            name = "HitDto",
+            fields = listOf(
+                WireType.Field("id", WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = false)),
+                WireType.Field("note", WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = true)),
+            ),
+        ))
+
+        emitter.write(
+            outputDir = dir.toFile(),
+            controllerDefinitions = mapOf("SearchController" to listOf(ep, typeDef)),
+            sharedTypes = emptyList(),
+        )
+        val out = File(dir.toFile(), "SearchController.ws").readText()
+
+        // Required query param stays bare; optional one gets `?`.
+        out shouldMatch Regex("(?s).*q\\s*:\\s*String\\b(?!\\?).*")
+        out shouldMatch Regex("(?s).*cursor\\s*:\\s*String\\?.*")
+        // Same for non-null vs nullable fields.
+        out shouldMatch Regex("(?s).*id\\s*:\\s*String\\b(?!\\?).*")
+        out shouldMatch Regex("(?s).*note\\s*:\\s*String\\?.*")
     }
 
     @Test

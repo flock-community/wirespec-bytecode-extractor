@@ -168,13 +168,29 @@ Recursive with a memoizing cache to break cycles.
   and are otherwise dropped with a warning.
 - **springdoc `@Schema`:** read `description` (attached as a Wirespec comment)
   and `required = true` (participates in nullability resolution).
-- **Nullability resolution** (in priority order):
+- **Nullability resolution for DTO fields** (in priority order):
   1. Java primitives → non-null.
-  2. Kotlin nullability metadata (via `kotlin.Metadata`) → as declared.
-  3. `Optional<T>` → nullable, with the inner `T`.
-  4. JSR-305 / `@Nullable` / `@NonNull` annotations → as declared.
+  2. `Optional<T>` → nullable, unwrapped to the inner `T` (never flattened into
+     a synthetic `TOptional` object).
+  3. Kotlin nullability metadata (via `kotlin.Metadata`) → as declared.
+  4. `@Nullable` / `@NonNull` annotations → as declared. Recognised families:
+     JSR-305 (`javax`/`jakarta`), JetBrains, Spring, Android, FindBugs,
+     Checker Framework, and **JSpecify** (`org.jspecify.annotations`). Both
+     declaration- and `TYPE_USE`-targeted annotations are read (JSpecify's are
+     `TYPE_USE`-only, so they live on the annotated type, not the declaration).
   5. `@NotNull` / `@NotBlank` / `@Schema(required = true)` → non-null.
-  6. Default → nullable.
+  6. JSpecify `@NullMarked` scope (method/field, enclosing class(es), or
+     package; reversible with `@NullUnmarked`) → unannotated references default
+     to non-null.
+  7. Default → nullable.
+- **Nullability resolution for binding parameters** (`@PathVariable`,
+  `@RequestParam`, `@RequestHeader`, `@CookieValue`, `@RequestBody`): a binding
+  parameter defaults to **non-null** (Spring resolves it as required). It
+  becomes nullable when typed `Optional<T>` (unwrapped to nullable `T`),
+  annotated `@Nullable`, declared with a Kotlin nullable type, or marked
+  optional to Spring (`required = false` or a `defaultValue`). Java primitives
+  are always non-null. An explicit `@Nullable` / `@NonNull` or Kotlin
+  nullability wins over Spring's required flag.
 - **Generics:** resolve bound type parameters via `ParameterizedType`. Unbound
   generics (`List<?>`) → `List<String>` + warning.
 - **Unknown / un-resolvable types:** log warning, fall back to Wirespec `String`,

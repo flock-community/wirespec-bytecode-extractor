@@ -140,6 +140,10 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
 - DTO classes referenced by endpoints, with Jackson (`@JsonProperty`,
   `@JsonIgnore`), Bean Validation (`@NotNull`, `@Size`, `@Pattern`, `@Min`,
   `@Max`), and springdoc `@Schema` awareness
+- Nullability for both DTO fields and endpoint parameters — from Kotlin types,
+  `Optional<T>`, Spring's `required` flag, and `@Nullable` / `@NonNull`
+  annotations (JSR-305, JetBrains, Spring, JSpecify — including JSpecify's
+  `@NullMarked` scopes). See [Nullability](#nullability).
 - Spring functional-DSL routes — WebFlux Kotlin `router { }` / `coRouter { }`,
   Spring MVC Kotlin `router { }`, and the Java fluent
   `RouterFunctions.route()` builder. See
@@ -176,6 +180,32 @@ method) when it encounters:
 
 This monomorphization rule means controller signatures must always bind
 their generic parameters concretely.
+
+### Nullability
+
+Every emitted field and parameter is marked nullable (`T?`) or non-null (`T`).
+
+**DTO fields** default to nullable, and are resolved in priority order:
+
+1. Java primitives → non-null.
+2. `Optional<T>` → nullable, unwrapped to the inner `T`.
+3. Kotlin nullability (`String?` vs `String`) via `@Metadata`.
+4. `@Nullable` / `@NonNull` annotations — JSR-305 (`javax`/`jakarta`), JetBrains,
+   Spring, Android, FindBugs, Checker Framework, and **JSpecify**. Both
+   declaration- and `TYPE_USE`-targeted annotations are read (JSpecify's are
+   `TYPE_USE`-only).
+5. `@NotNull` / `@NotBlank` / `@Schema(required = true)` → non-null.
+6. JSpecify `@NullMarked` in scope (the field/method, an enclosing class, or the
+   package — reversible with `@NullUnmarked`) → unannotated references become
+   non-null.
+
+**Endpoint parameters** (`@PathVariable`, `@RequestParam`, `@RequestHeader`,
+`@CookieValue`, `@RequestBody`) instead default to **non-null** — Spring treats
+them as required. A parameter becomes nullable when it is typed `Optional<T>`,
+annotated `@Nullable`, declared with a Kotlin nullable type, or marked optional
+to Spring (`required = false` or a `defaultValue`). An explicit annotation or a
+Kotlin nullable type wins over the `required` flag; Java primitives are always
+non-null.
 
 ### Multiple responses
 

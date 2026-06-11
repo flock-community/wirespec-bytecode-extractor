@@ -6,6 +6,7 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 import java.lang.reflect.WildcardType
+import java.util.Optional
 import java.util.UUID
 
 /**
@@ -27,8 +28,12 @@ open class TypeExtractor {
 
     val definitions: Set<WireType> get() = _definitions
 
-    /** Extract a [WireType] for [type]. Top-level Object/Enum/Refined definitions accumulate in [definitions]. */
-    fun extract(type: Type): WireType = extractInner(type, nullable = false)
+    /**
+     * Extract a [WireType] for [type], stamping the top-level reference with [nullable].
+     * Top-level Object/Enum/Refined definitions accumulate in [definitions].
+     */
+    fun extract(type: Type, nullable: Boolean = false): WireType =
+        withNullability(extractInner(type, nullable = false), nullable)
 
     private fun extractInner(type: Type, nullable: Boolean): WireType = when (type) {
         is Class<*>          -> fromClass(type, nullable)
@@ -88,6 +93,8 @@ open class TypeExtractor {
         if (cls == String::class.java) return WireType.Primitive(WireType.Primitive.Kind.STRING, nullable)
         if (cls == ByteArray::class.java) return WireType.Primitive(WireType.Primitive.Kind.BYTES, nullable)
         if (cls == UUID::class.java) return WireType.Primitive(WireType.Primitive.Kind.STRING, nullable)
+        // Raw Optional (no type argument) — an opaque, inherently nullable value.
+        if (cls == Optional::class.java) return WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = true)
         if (Enum::class.java.isAssignableFrom(cls)) {
             val fp = cls.name
             cache[fp]?.let { return (it as WireType.Ref).copy(nullable = nullable) }
@@ -130,6 +137,11 @@ open class TypeExtractor {
 
     private fun fromParameterized(pt: ParameterizedType, nullable: Boolean): WireType {
         val raw = pt.rawType as Class<*>
+        // Optional<T> is a nullability wrapper, not a DTO: unwrap to T (always nullable)
+        // instead of flattening it into an "TOptional" object with Optional's internals.
+        if (raw == Optional::class.java) {
+            return withNullability(extractInner(pt.actualTypeArguments[0], nullable = false), nullable = true)
+        }
         if (Collection::class.java.isAssignableFrom(raw)) {
             // Let extractInner handle the element type, including TypeVariable resolution
             // via the bindings stack. The previous TypeVariable -> STRING short-circuit

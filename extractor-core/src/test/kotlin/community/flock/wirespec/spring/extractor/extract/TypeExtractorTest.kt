@@ -243,6 +243,38 @@ class TypeExtractorTest {
     }
 
     @Test
+    fun `Optional field unwraps to a nullable inner type, not an Optional object`() {
+        extractor.extract(community.flock.wirespec.spring.extractor.fixtures.dto.SchemaDto::class.java)
+        val obj = extractor.definitions.single { (it as? WireType.Object)?.name == "SchemaDto" } as WireType.Object
+        val maybe = obj.fields.single { it.name == "maybe" }
+        maybe.type shouldBe WireType.Primitive(WireType.Primitive.Kind.STRING, nullable = true)
+        // The Optional itself must not leak as a flattened "StringOptional" object.
+        extractor.definitions.none { (it as? WireType.Object)?.name == "StringOptional" } shouldBe true
+    }
+
+    @Test
+    fun `JSpecify @NullMarked record defaults to non-null and honors @Nullable`() {
+        extractor.extract(community.flock.wirespec.spring.extractor.fixtures.dto.jspecify.NullMarkedDto::class.java)
+        val obj = extractor.definitions.single { (it as? WireType.Object)?.name == "NullMarkedDto" } as WireType.Object
+        val byName = obj.fields.associateBy { it.name }
+        byName["required"]!!.type.nullable shouldBe false
+        byName["optional"]!!.type.nullable shouldBe true
+        byName["optionalBoxed"]!!.type.nullable shouldBe true
+        byName["primitive"]!!.type.nullable shouldBe false
+    }
+
+    @Test
+    fun `JSpecify @Nullable and @NonNull decide per-field without @NullMarked`() {
+        extractor.extract(community.flock.wirespec.spring.extractor.fixtures.dto.jspecify.PlainNullnessDto::class.java)
+        val obj = extractor.definitions.single { (it as? WireType.Object)?.name == "PlainNullnessDto" } as WireType.Object
+        val byName = obj.fields.associateBy { it.name }
+        byName["maybe"]!!.type.nullable shouldBe true
+        byName["always"]!!.type.nullable shouldBe false
+        // Not null-marked → default stays nullable.
+        byName["unspecified"]!!.type.nullable shouldBe true
+    }
+
+    @Test
     fun `Page of UserDto flattens to UserDtoPage with substituted fields`() {
         val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("userDtoPage").genericType
