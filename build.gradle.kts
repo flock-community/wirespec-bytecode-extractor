@@ -30,9 +30,9 @@ plugins {
 subprojects {
     plugins.withId("com.vanniktech.maven.publish.base") {
         val publishedArtifactId = when (name) {
-            "extractor-core"          -> "wirespec-spring-extractor-core"
-            "extractor-maven-plugin"  -> "wirespec-spring-extractor-maven-plugin"
-            "extractor-gradle-plugin" -> "wirespec-spring-extractor-gradle-plugin"
+            "extractor-core"          -> "wirespec-bytecode-extractor-core"
+            "extractor-maven-plugin"  -> "wirespec-bytecode-extractor-maven-plugin"
+            "extractor-gradle-plugin" -> "wirespec-bytecode-extractor-gradle-plugin"
             else                      -> error("vanniktech applied to unexpected subproject: $name")
         }
         val isMavenPlugin = name == "extractor-maven-plugin"
@@ -66,7 +66,7 @@ subprojects {
             pom {
                 name.set(publishedArtifactId)
                 description.set(provider { project.description ?: publishedArtifactId })
-                url.set("https://github.com/flock-community/wirespec-spring-extractor")
+                url.set("https://github.com/flock-community/wirespec-bytecode-extractor")
                 if (isMavenPlugin) {
                     packaging = "maven-plugin"
                 }
@@ -86,9 +86,9 @@ subprojects {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/flock-community/wirespec-spring-extractor.git")
-                    developerConnection.set("scm:git:ssh://github.com:flock-community/wirespec-spring-extractor.git")
-                    url.set("https://github.com/flock-community/wirespec-spring-extractor")
+                    connection.set("scm:git:git://github.com/flock-community/wirespec-bytecode-extractor.git")
+                    developerConnection.set("scm:git:ssh://github.com:flock-community/wirespec-bytecode-extractor.git")
+                    url.set("https://github.com/flock-community/wirespec-bytecode-extractor")
                 }
             }
         }

@@ -16,24 +16,24 @@
 
 **Modified:**
 
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt` — primary surface (~150 new/changed lines).
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorException.kt` — sealed open class with four new factory methods for generics errors.
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt:66-83` — rethrow `WirespecExtractorException` from per-controller / per-type try/catch blocks.
-- `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt` — replace the unbound-STRING test (line 79) and add new flattening tests.
-- `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/ownership/TypeOwnershipTest.kt` — add scenarios for flattened generics.
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt` — primary surface (~150 new/changed lines).
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt` — sealed open class with four new factory methods for generics errors.
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt:66-83` — rethrow `WirespecExtractorException` from per-controller / per-type try/catch blocks.
+- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt` — replace the unbound-STRING test (line 79) and add new flattening tests.
+- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt` — add scenarios for flattened generics.
 - `integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/UserController.kt` — extend with a `Page<UserDto>` endpoint.
 - `integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt` — extend with a `Page<UserDto>` endpoint (shared-instantiation scenario).
 - `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java` — same.
 - `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java` — same.
-- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt` — extend verifiers.
+- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt` — extend verifiers.
 - `integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/UserController.kt` — same as Gradle counterpart.
 - `integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt` — same.
 - `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java` — same.
 - `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java` — same.
-- `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt` — extend verifiers.
+- `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt` — extend verifiers.
 - `README.md` — note generic-flattening behavior and rules.
 
-**Created (unit-test fixtures, in `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/`):**
+**Created (unit-test fixtures, in `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/`):**
 
 - `Page.kt` — generic `Page<T>` data class with `content: T`, `totalElements: Long`, `number: Int`.
 - `Wrapper.kt` — generic `Wrapper<T>` with `value: T`.
@@ -44,7 +44,7 @@
 - `UserPage.kt` — concrete subclass `class UserPage : Page<UserDto>()` (extends the binding parent).
 - `UserDtoPage.kt` — hand-written class that intentionally collides with the flattened `Page<UserDto>` name.
 - `BadControllers.kt` — fixtures used to exercise the four error cases (raw generic return, wildcard return, raw superclass).
-- `Container.kt` — extend the existing fixture (`extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/dto/Container.kt`) by adding a sibling holder that binds `T`; the existing file stays.
+- `Container.kt` — extend the existing fixture (`extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/dto/Container.kt`) by adding a sibling holder that binds `T`; the existing file stays.
 
 **Created (integration-test fixtures):**
 
@@ -57,7 +57,7 @@
 
 ## Conventions for all tasks
 
-- **Working directory:** always run commands from the worktree root `/Users/wilmveel/Projects/wirespec-spring-extractor/.claude/worktrees/types-close-to-endpoints`. Never `cd` to the original repo root.
+- **Working directory:** always run commands from the worktree root `/Users/wilmveel/Projects/wirespec-bytecode-extractor/.claude/worktrees/types-close-to-endpoints`. Never `cd` to the original repo root.
 - **Run tests** with `./gradlew :extractor-core:test --tests <FQN>` for individual classes/tests. Integration tests: `./gradlew :integration-tests-gradle:test` and `./gradlew :integration-tests-maven:test`.
 - **Commits** use Conventional Commits prefixes (`feat`, `test`, `refactor`, `docs`, `fix`). Every commit ends with `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
 - **Imports** in Kotlin tests already follow the project pattern — match the existing files (alphabetical, no wildcards).
@@ -68,18 +68,18 @@
 ## Task 1: Add generic-flattening exception types and stop swallowing them
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorException.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt:66-83`
-- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt` (add cases)
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt:66-83`
+- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt` (add cases)
 
 - [ ] **Step 1: Read existing WirespecExtractorTest.kt to learn its conventions**
 
-Run: `cat extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt`
+Run: `cat extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt`
 Expected: file contents — note import style, how `ExtractConfig` is constructed, how the working classpath is built.
 
 - [ ] **Step 2: Write the failing test for exception propagation**
 
-Append to `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt`:
+Append to `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt`:
 
 ```kotlin
     @Test
@@ -123,15 +123,15 @@ import io.kotest.matchers.string.shouldContain
 
 - [ ] **Step 3: Run the test to verify it fails for the right reason**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.WirespecExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.WirespecExtractorTest' -q`
 Expected: compilation failure — `WirespecExtractorException.rawGenericReference` / `.wildcardArgument` / `.rawGenericSuperclass` do not exist yet.
 
 - [ ] **Step 4: Add the factory methods on WirespecExtractorException**
 
-Replace the entire contents of `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorException.kt` with:
+Replace the entire contents of `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt` with:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor
+package community.flock.wirespec.bytecode.extractor
 
 /**
  * Thrown by [WirespecExtractor.extract] when extraction fails because of:
@@ -185,12 +185,12 @@ open class WirespecExtractorException(
 
 - [ ] **Step 5: Run the unit tests for the factory methods**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.WirespecExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.WirespecExtractorTest' -q`
 Expected: PASS.
 
 - [ ] **Step 6: Make WirespecExtractor propagate these exceptions**
 
-Edit `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt`. Replace lines 66-71:
+Edit `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`. Replace lines 66-71:
 
 ```kotlin
             val byController = controllers.associate { c ->
@@ -257,7 +257,7 @@ Expected: BUILD SUCCESSFUL.
 
 Run:
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorException.kt extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt
 git commit -m "feat(extractor): add generic-flattening exception factories, propagate them
 
 Adds WirespecExtractorException factories for the four user-facing
@@ -273,20 +273,20 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 2: Add generic fixtures (Page, Wrapper, ApiResponse, holders)
 
 **Files:**
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Page.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Wrapper.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/ApiResponse.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Pair2.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Page.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Wrapper.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/ApiResponse.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Pair2.kt`
 
 Fixtures only — no production change. No test runs needed yet; verification is "the next task's tests resolve these symbols".
 
 - [ ] **Step 1: Create Page fixture**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Page.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Page.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 /**
  * Test fixture used to exercise generic-flattening. Field shapes are
@@ -302,30 +302,30 @@ open class Page<T>(
 
 - [ ] **Step 2: Create Wrapper fixture**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Wrapper.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Wrapper.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 data class Wrapper<T>(val value: T)
 ```
 
 - [ ] **Step 3: Create ApiResponse fixture**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/ApiResponse.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/ApiResponse.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 data class ApiResponse<T>(val data: T, val status: Int)
 ```
 
 - [ ] **Step 4: Create Pair2 fixture (two type parameters)**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Pair2.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Pair2.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 /** Two-arg generic; named Pair2 to avoid shadowing kotlin.Pair. */
 data class Pair2<A, B>(val first: A, val second: B)
@@ -335,13 +335,13 @@ data class Pair2<A, B>(val first: A, val second: B)
 
 Holders are needed because Kotlin reflection at the call site gives us a `KType`/`Type` we can capture from a declared field. `Type` from method return is also fine but holders read cleaner in tests.
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
-import community.flock.wirespec.spring.extractor.fixtures.dto.UserDto
-import community.flock.wirespec.spring.extractor.fixtures.dto.Role
+import community.flock.wirespec.bytecode.extractor.fixtures.dto.UserDto
+import community.flock.wirespec.bytecode.extractor.fixtures.dto.Role
 
 /**
  * Each field's `genericType` is a `ParameterizedType` instance whose actual
@@ -365,7 +365,7 @@ class Holders {
 }
 ```
 
-If `UserDto`'s constructor doesn't accept those parameters as positional, check `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/dto/UserDto.kt` and adjust `stubUser()` accordingly. The point is just that the field has a concrete value of the right type — runtime construction doesn't matter, the test reads `.genericType`.
+If `UserDto`'s constructor doesn't accept those parameters as positional, check `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/dto/UserDto.kt` and adjust `stubUser()` accordingly. The point is just that the field has a concrete value of the right type — runtime construction doesn't matter, the test reads `.genericType`.
 
 - [ ] **Step 6: Verify the fixtures compile**
 
@@ -376,7 +376,7 @@ Expected: BUILD SUCCESSFUL. If `stubUser()` fails to compile, fix it by reading 
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/
 git commit -m "test(extractor): add generic fixtures (Page, Wrapper, ApiResponse, Pair2, Holders)
 
 Test-only fixtures for upcoming generic-flattening tests. Holders expose
@@ -392,17 +392,17 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 This is the core mechanism: introduce the bindings stack, the FQN-based fingerprint cache key, the `flatName` function for the simplest (single-class arg) case, and the `fromParameterized` non-collection branch.
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Append to `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt` (above the closing brace):
+Append to `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt` (above the closing brace):
 
 ```kotlin
     @Test
     fun `Page of UserDto flattens to UserDtoPage with substituted fields`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("userDtoPage").genericType
 
         val ref = extractor.extract(type)
@@ -423,12 +423,12 @@ Append to `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extrac
 
 - [ ] **Step 2: Run the test, watch it fail**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Page of UserDto flattens to UserDtoPage*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Page of UserDto flattens to UserDtoPage*' -q`
 Expected: FAIL. Reason: current `fromParameterized` falls through to `fromClass(raw)`, so the ref name will be `"Page"` (not `"UserDtoPage"`) and the `content` field will be a STRING primitive (since `T` resolves to STRING in the unbound branch).
 
 - [ ] **Step 3: Add the bindings stack to TypeExtractor**
 
-Open `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`. After the existing `usedNames` field (after line 22), insert:
+Open `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`. After the existing `usedNames` field (after line 22), insert:
 
 ```kotlin
     /** Stack of TypeVariable -> Type bindings, pushed when entering a parameterized type's body. */
@@ -642,7 +642,7 @@ Insert below the existing `nameFor`:
 
 - [ ] **Step 8: Update the `TypeVariable<*>` branch of `extractInner` to consult bindings**
 
-Open `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`. Replace line 33:
+Open `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`. Replace line 33:
 
 ```kotlin
         is TypeVariable<*>   -> WireType.Primitive(WireType.Primitive.Kind.STRING, nullable)
@@ -660,19 +660,19 @@ with:
 
 - [ ] **Step 9: Run the test from Step 1**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Page of UserDto flattens*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Page of UserDto flattens*' -q`
 Expected: PASS.
 
 - [ ] **Step 10: Run the rest of `TypeExtractorTest` to confirm no regression**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest' -q`
 Expected: PASS for everything EXCEPT possibly the `unbound generic ParameterizedType resolves to ListOf STRING with warning` test, which exercises `Container<T>` (still unbound at extraction time). That test was already covered by the *collection* branch of `fromParameterized`, not our new path, so it should still pass. If it doesn't, stop and inspect.
 
 - [ ] **Step 11: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "feat(extractor): flatten single-arg user generics (Page<UserDto> -> UserDtoPage)
 
 Introduces the bindings stack, FQN-based fingerprint cache, and flatName
@@ -688,7 +688,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 4: Primitive type arguments — `Wrapper<Int>` → `IntegerWrapper`
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 The existing implementation should already handle this correctly because `flatName` already returns `"Integer"` for `Int::class.java` (Kotlin `Int` boxes to `java.lang.Integer`, simpleName is `"Integer"`). This task is a verification test plus a sanity check on the Kotlin/Java boxing.
 
@@ -699,7 +699,7 @@ Append to `TypeExtractorTest.kt`:
 ```kotlin
     @Test
     fun `Wrapper of Int flattens to IntegerWrapper with INTEGER_32 value field`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("intWrapper").genericType
 
         val ref = extractor.extract(type)
@@ -712,7 +712,7 @@ Append to `TypeExtractorTest.kt`:
 
     @Test
     fun `Wrapper of String flattens to StringWrapper`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("stringWrapper").genericType
 
         val ref = extractor.extract(type)
@@ -726,14 +726,14 @@ Append to `TypeExtractorTest.kt`:
 
 - [ ] **Step 2: Run the tests**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Wrapper of *' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Wrapper of *' -q`
 Expected: PASS. If FAIL: read the error; the most likely culprit is `Wrapper`'s class file structure. Inspect with a debugger or print the type-arg class name and adjust `flatName` accordingly.
 
 - [ ] **Step 3: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover primitive type args (Wrapper<Int>, Wrapper<String>)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -744,7 +744,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 5: Multi-arg generics — `Pair2<UserDto, Role>` → `UserDtoRolePair2`
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 Should already work because `flatName`'s default branch is `args.joinToString("") { flatName(it) } + raw.simpleName`. Verification test only.
 
@@ -755,7 +755,7 @@ Append:
 ```kotlin
     @Test
     fun `Pair2 of UserDto and Role flattens to UserDtoRolePair2 with both fields substituted`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("pairUserOrder").genericType
 
         val ref = extractor.extract(type)
@@ -770,14 +770,14 @@ Append:
 
 - [ ] **Step 2: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Pair2 of UserDto*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Pair2 of UserDto*' -q`
 Expected: PASS.
 
 - [ ] **Step 3: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover multi-arg generics (Pair2<UserDto, Role>)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -788,7 +788,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 6: Nested generics — `Page<Wrapper<UserDto>>` → `UserDtoWrapperPage`
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 Should already work via recursion — verification only. Both `UserDtoWrapper` and `UserDtoWrapperPage` should be registered.
 
@@ -799,7 +799,7 @@ Append:
 ```kotlin
     @Test
     fun `Page of Wrapper of UserDto flattens innermost first to UserDtoWrapperPage`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("nestedPageOfWrapper").genericType
 
         val ref = extractor.extract(type)
@@ -825,14 +825,14 @@ import io.kotest.matchers.collections.shouldContain
 
 - [ ] **Step 2: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Page of Wrapper of UserDto*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Page of Wrapper of UserDto*' -q`
 Expected: PASS.
 
 - [ ] **Step 3: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover nested generics (innermost-first flattening)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -843,7 +843,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 7: Container args inside generics — `ApiResponse<List<UserDto>>` → `UserDtoListApiResponse`
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 The `flatName` Collection/Map branches handle this. The wrapper's `data: T` field, with `T → List<UserDto>`, is resolved via the bindings stack and `extractInner` recursion — `T` resolves to `List<UserDto>`, which `extractInner` then sees as a `ParameterizedType` and treats with the native Collection branch.
 
@@ -854,7 +854,7 @@ Append:
 ```kotlin
     @Test
     fun `ApiResponse of List of UserDto flattens to UserDtoListApiResponse with ListOf data field`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("apiResponseOfList").genericType
 
         val ref = extractor.extract(type)
@@ -872,7 +872,7 @@ Append:
 
     @Test
     fun `ApiResponse of Map of String to UserDto flattens to UserDtoMapApiResponse with MapOf data field`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("apiResponseOfMap").genericType
 
         val ref = extractor.extract(type)
@@ -887,14 +887,14 @@ Append:
 
 - [ ] **Step 2: Run the tests**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.ApiResponse of *' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.ApiResponse of *' -q`
 Expected: PASS.
 
 - [ ] **Step 3: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover container args inside generics (List/Map suffix in name)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -905,7 +905,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 8: List at use site stays native; distinct instantiations don't collide
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Write the tests**
 
@@ -914,7 +914,7 @@ Append:
 ```kotlin
     @Test
     fun `List of Page of UserDto at use site stays native ListOf with flattened element`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("listOfPage").genericType
 
         val out = extractor.extract(type)
@@ -928,7 +928,7 @@ Append:
     @Test
     fun `same instantiation reached twice produces one definition`() {
         val freshExtractor = TypeExtractor()
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("userDtoPage").genericType
 
         freshExtractor.extract(type)
@@ -941,15 +941,15 @@ Append:
     @Test
     fun `distinct instantiations of the same generic produce distinct definitions`() {
         val freshExtractor = TypeExtractor()
-        val userPage = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val userPage = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("userDtoPage").genericType
 
         // Use Pair2<UserDto, Role>'s components to build a contrasting Page<Role> reflection-only.
         // Simpler: ApiResponse<List<UserDto>> already flattens to UserDtoListApiResponse,
         // and ApiResponse<Map<...>> already flattens to UserDtoMapApiResponse. Compose them.
-        val arOfList = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val arOfList = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("apiResponseOfList").genericType
-        val arOfMap = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val arOfMap = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("apiResponseOfMap").genericType
 
         freshExtractor.extract(userPage)
@@ -963,14 +963,14 @@ Append:
 
 - [ ] **Step 2: Run the tests**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.List of Page*' --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.same instantiation*' --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.distinct instantiations*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.List of Page*' --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.same instantiation*' --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.distinct instantiations*' -q`
 Expected: PASS.
 
 - [ ] **Step 3: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover use-site List staying native, dedup, distinct instantiations
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -981,18 +981,18 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 9: Self-referential generic terminates — `Tree<UserDto>`
 
 **Files:**
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Tree.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Tree.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 The placeholder-ref pattern in `flattenGeneric` (Task 3, Step 6) already handles cycles — the cache is populated with the placeholder ref *before* `walkFields` recurses. This task adds the test that proves it.
 
 - [ ] **Step 1: Add the Tree fixture**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Tree.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Tree.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 class Tree<T>(
     val value: T,
@@ -1002,7 +1002,7 @@ class Tree<T>(
 
 - [ ] **Step 2: Add a Tree holder**
 
-Edit `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt`. Inside the `Holders` class body, add:
+Edit `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt`. Inside the `Holders` class body, add:
 
 ```kotlin
     val userDtoTree: Tree<UserDto> = Tree(value = stubUser(), children = emptyList())
@@ -1015,7 +1015,7 @@ Append to `TypeExtractorTest.kt`:
 ```kotlin
     @Test
     fun `Tree of UserDto flattens to UserDtoTree without infinite recursion`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("userDtoTree").genericType
 
         val ref = extractor.extract(type)
@@ -1036,14 +1036,14 @@ Append to `TypeExtractorTest.kt`:
 
 - [ ] **Step 4: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Tree of UserDto*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Tree of UserDto*' -q`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Tree.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Tree.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover self-referential generic (Tree<UserDto>)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -1054,21 +1054,21 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 10: Generic superclass field walk — `class UserPage : Page<UserDto>()`
 
 **Files:**
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/UserPage.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/UserPage.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 This task closes the inheritance gap: when extracting a concrete subclass of a generic parent, we need to walk the parent's declared fields under a binding frame so `T` resolves correctly.
 
 - [ ] **Step 1: Create the UserPage fixture**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/UserPage.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/UserPage.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
-import community.flock.wirespec.spring.extractor.fixtures.dto.Role
-import community.flock.wirespec.spring.extractor.fixtures.dto.UserDto
+import community.flock.wirespec.bytecode.extractor.fixtures.dto.Role
+import community.flock.wirespec.bytecode.extractor.fixtures.dto.UserDto
 
 /**
  * Concrete subclass of a parameterized parent. Has its own field plus
@@ -1092,7 +1092,7 @@ Append to `TypeExtractorTest.kt`:
 ```kotlin
     @Test
     fun `UserPage subclass of Page of UserDto extracts to Ref UserPage with inherited fields substituted`() {
-        val ref = extractor.extract(community.flock.wirespec.spring.extractor.fixtures.generic.UserPage::class.java)
+        val ref = extractor.extract(community.flock.wirespec.bytecode.extractor.fixtures.generic.UserPage::class.java)
         ref.shouldBeInstanceOf<WireType.Ref>().name shouldBe "UserPage"
 
         val obj = extractor.definitions.single { (it as? WireType.Object)?.name == "UserPage" } as WireType.Object
@@ -1115,7 +1115,7 @@ Append to `TypeExtractorTest.kt`:
 
 - [ ] **Step 3: Run the test, verify failure**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.UserPage subclass*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.UserPage subclass*' -q`
 Expected: FAIL. Reason: the current `propertyMembers` only walks `cls.declaredFields`, missing inherited members. The test will see only `pageLabel` (and probably miss parent fields).
 
 - [ ] **Step 4: Extend field discovery to climb the generic superclass chain**
@@ -1230,19 +1230,19 @@ This is the version that goes into the file. Replace the placeholder sketch with
 
 - [ ] **Step 5: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.UserPage subclass*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.UserPage subclass*' -q`
 Expected: PASS.
 
 - [ ] **Step 6: Run the full TypeExtractorTest to catch regressions**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest' -q`
 Expected: PASS for all tests. Inheritance may slightly change ordering or membership for a few existing tests (e.g., a record whose parent chain has fields). If you see a failure, investigate carefully — it's most likely a genuine pre-existing bug being surfaced, in which case extend the field-shadowing logic. If it's a test that asserts an exact field list and now has extra parent fields from `Any`/`Object`, that's a bug in the chain termination condition above.
 
 - [ ] **Step 7: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/UserPage.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/UserPage.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "feat(extractor): walk generic superclass chain with binding frames
 
 Concrete subclasses of parameterized parents (e.g., UserPage : Page<UserDto>)
@@ -1257,15 +1257,15 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 11: Name collision — hand-written `UserDtoPage` vs flattened `Page<UserDto>`
 
 **Files:**
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/UserDtoPage.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/UserDtoPage.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Create the colliding fixture**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/UserDtoPage.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/UserDtoPage.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 /** Hand-written class whose simple name matches the flattened name of Page<UserDto>. */
 data class UserDtoPage(val handWritten: Boolean)
@@ -1282,13 +1282,13 @@ Append to `TypeExtractorTest.kt`:
 
         // Register the hand-written class first; it claims "UserDtoPage".
         val handRef = freshExtractor.extract(
-            community.flock.wirespec.spring.extractor.fixtures.generic.UserDtoPage::class.java
+            community.flock.wirespec.bytecode.extractor.fixtures.generic.UserDtoPage::class.java
         )
         handRef.shouldBeInstanceOf<WireType.Ref>().name shouldBe "UserDtoPage"
 
         // Then extract Page<UserDto>; it gets the numeric suffix.
         val flatRef = freshExtractor.extract(
-            community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+            community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
                 .getDeclaredField("userDtoPage").genericType
         )
         flatRef.shouldBeInstanceOf<WireType.Ref>().name shouldBe "UserDtoPage2"
@@ -1300,7 +1300,7 @@ Append to `TypeExtractorTest.kt`:
 
 - [ ] **Step 3: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.hand-written UserDtoPage*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.hand-written UserDtoPage*' -q`
 Expected: PASS (the second `nameFor` overload from Task 3 handles this).
 
 If it FAILs because the disambiguation didn't trigger: read the result; it likely returned `"UserDtoPage"` because the new `nameFor(composed, rawClass)` only checks against its own identity. Look at how the original `nameFor(cls: Class<*>)` populates `usedNames` (with `cls.name` as the value) vs the new overload (with `${rawClass.name}#$composed` as the identity). They use *different* identity strings, so a hand-written class registered first claims `"UserDtoPage" -> "fqn.of.UserDtoPage"`, and the flattened version sees that mismatch and bumps to `UserDtoPage2`. That's correct. If broken, fix the overload to use a consistent identity scheme.
@@ -1309,7 +1309,7 @@ If it FAILs because the disambiguation didn't trigger: read the result; it likel
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/UserDtoPage.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/UserDtoPage.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): cover hand-written-vs-flattened name collision (UserDtoPage)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -1320,18 +1320,18 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 12: Error — raw generic at reference site
 
 **Files:**
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/BadControllers.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/BadControllers.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Create the BadControllers fixture file**
 
-Write `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/BadControllers.kt`:
+Write `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/BadControllers.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
-import community.flock.wirespec.spring.extractor.fixtures.dto.UserDto
+import community.flock.wirespec.bytecode.extractor.fixtures.dto.UserDto
 
 /** Holder fields that expose problematic Types via reflection. */
 @Suppress("unused", "UNCHECKED_CAST")
@@ -1348,7 +1348,7 @@ class BadControllers {
 Note: getting a *raw* `Class<*>` reference is simpler — extract `Page::class.java` directly in the test. The fixture above is only for the wildcard case. Update the fixture to only provide the wildcard:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.fixtures.generic
+package community.flock.wirespec.bytecode.extractor.fixtures.generic
 
 /** Holder field exposing `Page<*>` (wildcard) via reflection. */
 @Suppress("unused", "UNCHECKED_CAST")
@@ -1367,7 +1367,7 @@ Append to `TypeExtractorTest.kt`:
     @Test
     fun `extracting a raw generic class fails with a clear error`() {
         val ex = org.junit.jupiter.api.assertThrows<WirespecExtractorException> {
-            extractor.extract(community.flock.wirespec.spring.extractor.fixtures.generic.Page::class.java)
+            extractor.extract(community.flock.wirespec.bytecode.extractor.fixtures.generic.Page::class.java)
         }
         ex.message shouldContain "Cannot extract raw generic type Page"
         ex.message shouldContain "provide a concrete type argument"
@@ -1377,13 +1377,13 @@ Append to `TypeExtractorTest.kt`:
 Imports needed (add at top if missing):
 
 ```kotlin
-import community.flock.wirespec.spring.extractor.WirespecExtractorException
+import community.flock.wirespec.bytecode.extractor.WirespecExtractorException
 import io.kotest.matchers.string.shouldContain
 ```
 
 - [ ] **Step 3: Run the test, watch it fail**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting a raw generic*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting a raw generic*' -q`
 Expected: FAIL. Reason: today `fromClass(Page::class.java)` just registers `Page` with type-variable fields collapsed to STRING; no error is thrown.
 
 - [ ] **Step 4: Gate `fromClass` on declared type parameters**
@@ -1427,19 +1427,19 @@ Add a `currentContext()` helper near `resolveBinding`:
 
 - [ ] **Step 5: Run the test again**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting a raw generic*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting a raw generic*' -q`
 Expected: PASS.
 
 - [ ] **Step 6: Re-run the full TypeExtractorTest**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest' -q`
 Expected: PASS for all tests. If something fails because the new check is too aggressive (e.g., extracting `Container<T>` — the existing fixture has `Container<T>` and the old test exercises raw extraction), proceed to Task 14 (replacing that test) — but for now, if it failed, mark it `@Disabled` with a comment pointing to Task 14, run again, and proceed.
 
 - [ ] **Step 7: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/BadControllers.kt extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/BadControllers.kt extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "feat(extractor): hard-error on raw generic at reference site
 
 Extracting a raw generic class (no type arguments) now throws
@@ -1454,8 +1454,8 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 13: Error — wildcard type argument
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1464,7 +1464,7 @@ Append:
 ```kotlin
     @Test
     fun `extracting a generic with a wildcard argument fails with a clear error`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.BadControllers::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.BadControllers::class.java
             .getDeclaredField("wildcardPage").genericType
 
         val ex = org.junit.jupiter.api.assertThrows<WirespecExtractorException> {
@@ -1477,7 +1477,7 @@ Append:
 
 - [ ] **Step 2: Run the test, watch it fail**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting a generic with a wildcard*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting a generic with a wildcard*' -q`
 Expected: FAIL. Today the WildcardType branch of `extractInner` unwraps to upper-bound or `Any::class.java` (line 32) and silently produces a generic flattening with `Any`-collapsed type-arg, or `String` if it falls through.
 
 - [ ] **Step 3: Reject wildcards inside `flattenGeneric`**
@@ -1511,14 +1511,14 @@ with:
 
 - [ ] **Step 4: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting a generic with a wildcard*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting a generic with a wildcard*' -q`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "feat(extractor): hard-error on wildcard generic argument (Page<?>)
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -1529,9 +1529,9 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 14: Error — raw generic superclass
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/BadControllers.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/BadControllers.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Add the raw-superclass fixture**
 
@@ -1551,10 +1551,10 @@ class BadUserPage : Page<Any>(content = "x", totalElements = 0L, number = 0) {
 
 The cleanest way to test "raw superclass" in the JVM is to *fabricate* a class whose `genericSuperclass` is a raw `Class`. We can't write that in Kotlin directly, but we can write a small Java class. Add a Java fixture file:
 
-`extractor-core/src/test/java/community/flock/wirespec/spring/extractor/fixtures/generic/RawSuperPage.java`:
+`extractor-core/src/test/java/community/flock/wirespec/bytecode/extractor/fixtures/generic/RawSuperPage.java`:
 
 ```java
-package community.flock.wirespec.spring.extractor.fixtures.generic;
+package community.flock.wirespec.bytecode.extractor.fixtures.generic;
 
 /**
  * Java class that extends the raw generic Page without binding T.
@@ -1587,7 +1587,7 @@ Append to `TypeExtractorTest.kt`:
     @Test
     fun `extracting a class that extends a raw generic parent fails with a clear error`() {
         val ex = org.junit.jupiter.api.assertThrows<WirespecExtractorException> {
-            extractor.extract(community.flock.wirespec.spring.extractor.fixtures.generic.RawSuperPage::class.java)
+            extractor.extract(community.flock.wirespec.bytecode.extractor.fixtures.generic.RawSuperPage::class.java)
         }
         ex.message shouldContain "RawSuperPage extends generic Page"
         ex.message shouldContain "Page<UserDto>"  // suggestion form, not literal — message uses Page<UserDto> as exemplar
@@ -1598,7 +1598,7 @@ If the message template differs (per the factory in Task 1 it uses `"$rawSupercl
 
 - [ ] **Step 3: Run the test, watch it fail**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting a class that extends a raw generic*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting a class that extends a raw generic*' -q`
 Expected: FAIL. Today `inheritedAndDeclaredMembers` (Task 10) walks the chain and uses `level.genericSuperclass`; if it's a raw `Class` (not a `ParameterizedType`), no binding frame is pushed and `T` collapses to STRING — but no error.
 
 - [ ] **Step 4: Detect raw generic superclass in `inheritedAndDeclaredMembers`**
@@ -1646,19 +1646,19 @@ with:
 
 - [ ] **Step 5: Run the test**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting a class that extends a raw generic*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting a class that extends a raw generic*' -q`
 Expected: PASS.
 
 - [ ] **Step 6: Re-run the full TypeExtractorTest**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest' -q`
 Expected: PASS for everything except possibly the `Container` test (still pending replacement in Task 15).
 
 - [ ] **Step 7: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/BadControllers.kt extractor-core/src/test/java/community/flock/wirespec/spring/extractor/fixtures/generic/RawSuperPage.java extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/BadControllers.kt extractor-core/src/test/java/community/flock/wirespec/bytecode/extractor/fixtures/generic/RawSuperPage.java extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 # also add build.gradle.kts if you edited it
 git commit -m "feat(extractor): hard-error on unparameterized generic superclass
 
@@ -1674,16 +1674,16 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 15: Replace the existing unbound-STRING test for `Container<T>`
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt`
 
 - [ ] **Step 1: Add a Container<UserDto> holder field**
 
 Edit `Holders.kt`, add inside the `Holders` class:
 
 ```kotlin
-    val userDtoContainer: community.flock.wirespec.spring.extractor.fixtures.dto.Container<UserDto> =
-        community.flock.wirespec.spring.extractor.fixtures.dto.Container(items = emptyList(), first = stubUser())
+    val userDtoContainer: community.flock.wirespec.bytecode.extractor.fixtures.dto.Container<UserDto> =
+        community.flock.wirespec.bytecode.extractor.fixtures.dto.Container(items = emptyList(), first = stubUser())
 ```
 
 - [ ] **Step 2: Remove the old test and add the replacement**
@@ -1705,14 +1705,14 @@ Delete it. Add in its place:
     @Test
     fun `extracting raw Container fails because it declares type parameters`() {
         val ex = org.junit.jupiter.api.assertThrows<WirespecExtractorException> {
-            extractor.extract(community.flock.wirespec.spring.extractor.fixtures.dto.Container::class.java)
+            extractor.extract(community.flock.wirespec.bytecode.extractor.fixtures.dto.Container::class.java)
         }
         ex.message shouldContain "Cannot extract raw generic type Container"
     }
 
     @Test
     fun `Container of UserDto flattens to UserDtoContainer with substituted fields`() {
-        val type = community.flock.wirespec.spring.extractor.fixtures.generic.Holders::class.java
+        val type = community.flock.wirespec.bytecode.extractor.fixtures.generic.Holders::class.java
             .getDeclaredField("userDtoContainer").genericType
 
         val ref = extractor.extract(type)
@@ -1728,19 +1728,19 @@ Delete it. Add in its place:
 
 - [ ] **Step 3: Run the affected tests**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.extracting raw Container*' --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest.Container of UserDto*' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.extracting raw Container*' --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest.Container of UserDto*' -q`
 Expected: PASS.
 
 - [ ] **Step 4: Run the full TypeExtractorTest to confirm no regression**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.extract.TypeExtractorTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.extract.TypeExtractorTest' -q`
 Expected: PASS for everything.
 
 - [ ] **Step 5: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/fixtures/generic/Holders.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractorTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures/generic/Holders.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractorTest.kt
 git commit -m "test(extractor): replace unbound-STRING Container test with hard-error + positive flatten
 
 Container<T> as a reference is now rejected (test 13's territory); the
@@ -1755,13 +1755,13 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Task 16: Ownership integration — flattened generics partition correctly
 
 **Files:**
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/ownership/TypeOwnershipTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt`
 
 Add three scenarios: owned-by-one, shared-by-two, distinct-instantiations.
 
 - [ ] **Step 1: Read the existing TypeOwnershipTest to learn its conventions**
 
-Run: `cat extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/ownership/TypeOwnershipTest.kt | head -100`
+Run: `cat extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt | head -100`
 Expected: lay of the land — how it constructs synthetic `Definition`s, what helpers it uses.
 
 - [ ] **Step 2: Write the three failing tests**
@@ -1798,19 +1798,19 @@ Look at how existing tests in this file construct `WsType` (`Type`) and `WsEndpo
 
 - [ ] **Step 3: Run the tests, watch them fail**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.ownership.TypeOwnershipTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest' -q`
 Expected: the three new tests FAIL with compilation errors if the helpers aren't quite right, or assertion failures if logic differs. Fix incrementally until they fail with assertion errors, then watch them pass — `TypeOwnership` should ALREADY handle these scenarios correctly because flattened types are just `WireType.Object`s by the time ownership runs.
 
 - [ ] **Step 4: Run the tests**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.spring.extractor.ownership.TypeOwnershipTest' -q`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest' -q`
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 Run:
 ```bash
-git add extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/ownership/TypeOwnershipTest.kt
+git add extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt
 git commit -m "test(ownership): verify flattened generics partition like any other type
 
 Adds three scenarios covering owned-by-one, shared-by-two, and distinct
@@ -1829,7 +1829,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Modify: `integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/UserController.kt`
 - Create: `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/dto/Page.java`
 - Modify: `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
 
 - [ ] **Step 1: Add the Page<T> fixture for Kotlin**
 
@@ -1877,7 +1877,7 @@ Edit `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/ap
 
 - [ ] **Step 5: Extend the verifier — Kotlin fixture**
 
-Edit `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`. Inside `verifyBasicKotlinApp`, after the existing controller assertions, add:
+Edit `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`. Inside `verifyBasicKotlinApp`, after the existing controller assertions, add:
 
 ```kotlin
         controller shouldContain "endpoint Page GET /users/page"
@@ -1906,7 +1906,7 @@ Expected: PASS. If FAIL: read the produced `.ws` files (path printed in the fail
 
 Run:
 ```bash
-git add integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/dto/Page.kt integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/dto/Page.java integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/UserController.kt integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt
+git add integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/dto/Page.kt integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/dto/Page.java integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/UserController.kt integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt
 git commit -m "test(it-gradle): add Page<UserDto> endpoint, verify flattened type emission
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
@@ -1921,7 +1921,7 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Modify: `integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/UserController.kt`
 - Create: `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/dto/Page.java`
 - Modify: `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java`
-- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt`
+- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`
 
 - [ ] **Step 1: Mirror the four fixture changes from Task 17 Steps 1-4 to the Maven IT tree**
 
@@ -1955,8 +1955,8 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 - Modify: `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java`
 - Modify: `integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt`
 - Modify: `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`
-- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`
 
 - [ ] **Step 1: Add a second `Page<UserDto>` endpoint on AdminController (Kotlin, both ITs)**
 
@@ -2011,7 +2011,7 @@ Expected: PASS for both.
 
 Run:
 ```bash
-git add integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt
+git add integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt
 git commit -m "test(it): cover shared flattened-generic instantiation (UserDtoPage in types.ws)
 
 Both UserController and AdminController now return Page<UserDto>; the

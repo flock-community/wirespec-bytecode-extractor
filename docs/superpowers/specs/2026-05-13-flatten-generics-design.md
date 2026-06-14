@@ -10,7 +10,7 @@ type reference must resolve to a concrete shape, with no `T` parameters and no
 generic specializations at the reference site.
 
 Today the extractor's `TypeExtractor.fromParameterized`
-(`extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt:93`)
+(`extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt:93`)
 handles `Collection<T>` and `Map<K, V>` correctly — they become `WireType.ListOf`
 and `WireType.MapOf` — but for **any other parameterized type** it falls
 through to `fromClass(raw, nullable)` and silently drops the type arguments.
@@ -299,12 +299,12 @@ emitted. Partial wirespec is worse than no wirespec for downstream codegen.
 The full implementation touches one production file and several test files:
 
 - **Modify:**
-  `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/TypeExtractor.kt`
+  `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/TypeExtractor.kt`
   — extend `fromParameterized` non-collection branch, extend the
   `TypeVariable<*>` branch of `extractInner`, extend `walkFields` to climb
   generic superclasses, add `bindings`/`context` stacks, extend cache key.
 - **Modify:**
-  `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorException.kt`
+  `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt`
   — add new exception subtypes (or detailed factory methods) for the four
   error cases.
 - **Modify / add tests:** see Testing section.

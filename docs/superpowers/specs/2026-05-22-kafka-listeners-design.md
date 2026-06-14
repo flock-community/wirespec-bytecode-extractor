@@ -5,7 +5,7 @@
 
 ## Goal
 
-Extend `wirespec-spring-extractor` to discover Spring Kafka consumers and producers in a Spring Boot application's compiled classes and emit them as Wirespec `channel` definitions, alongside the existing HTTP `endpoint` extraction. No changes to plugin configuration surface, output directory, or HTTP behavior.
+Extend `wirespec-bytecode-extractor` to discover Spring Kafka consumers and producers in a Spring Boot application's compiled classes and emit them as Wirespec `channel` definitions, alongside the existing HTTP `endpoint` extraction. No changes to plugin configuration surface, output directory, or HTTP behavior.
 
 ## Scope
 
@@ -35,7 +35,7 @@ ClasspathBuilder ── ClassGraph ──┬── ControllerScanner ──► E
 
 ## New components
 
-All under `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/kafka/` unless noted.
+All under `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/` unless noted.
 
 ### `model.Channel` (new, under `model/`)
 

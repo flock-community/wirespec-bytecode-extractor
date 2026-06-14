@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship a Gradle plugin (`community.flock.wirespec.spring.extractor`) with the same auto-wiring + zero-config behaviour as the existing Maven plugin, plus two TestKit-driven integration tests that prove it produces correct `.ws` output on Kotlin and Java/Spring fixture projects.
+**Goal:** Ship a Gradle plugin (`community.flock.wirespec.bytecode.extractor`) with the same auto-wiring + zero-config behaviour as the existing Maven plugin, plus two TestKit-driven integration tests that prove it produces correct `.ws` output on Kotlin and Java/Spring fixture projects.
 
 **Architecture:** A new `:extractor-gradle-plugin` module is a thin shim over `WirespecExtractor.extract(ExtractConfig)`. Applying the plugin (after a JVM source plugin is present) registers a single `extractWirespec` task that reads `sourceSets.main.output.classesDirs` + `runtimeClasspath` and writes `.ws` files; `assemble` is made to depend on it so `gradle build` always extracts. Integration tests live in a new sibling module `:integration-tests-gradle` and use `GradleRunner` against fixture projects under `src/it/`, with an isolated TestKit dir so they never touch `~/.gradle`. One small core API change supports Gradle's multi-classesDir output: `ExtractConfig.classesDirectory: File` becomes `ExtractConfig.classesDirectories: List<File>`.
 
@@ -16,11 +16,11 @@
 
 **Created:**
 - `extractor-gradle-plugin/build.gradle.kts`
-- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorPlugin.kt`
-- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorExtension.kt`
-- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/ExtractWirespecTask.kt`
-- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/GradleExtractLog.kt`
-- `extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorPluginTest.kt`
+- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorPlugin.kt`
+- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorExtension.kt`
+- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/ExtractWirespecTask.kt`
+- `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/GradleExtractLog.kt`
+- `extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorPluginTest.kt`
 - `integration-tests-gradle/build.gradle.kts`
 - `integration-tests-gradle/src/it/basic-kotlin-app/settings.gradle.kts`
 - `integration-tests-gradle/src/it/basic-kotlin-app/build.gradle.kts`
@@ -32,17 +32,17 @@
 - `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/UserController.java`
 - `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/dto/UserDto.java`
 - `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/dto/Role.java`
-- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
 
 **Modified:**
 - `settings.gradle.kts` — include the two new modules.
 - `gradle/libs.versions.toml` — add `gradle-plugin-publish` plugin alias.
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/ExtractConfig.kt` — rename `classesDirectory: File` → `classesDirectories: List<File>`.
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/classpath/ClasspathBuilder.kt` — `collectUrls(outputDirectory: File)` → `collectUrls(outputDirectories: List<File>)`.
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt` — iterate over the list; update the existence check; tweak the error message to be tool-neutral.
-- `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt` — use the new field name; relax error-message assertion.
-- `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/classpath/ClasspathBuilderTest.kt` — use the new parameter name.
-- `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/maven/ExtractMojo.kt` — pass a single-element list.
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractConfig.kt` — rename `classesDirectory: File` → `classesDirectories: List<File>`.
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/classpath/ClasspathBuilder.kt` — `collectUrls(outputDirectory: File)` → `collectUrls(outputDirectories: List<File>)`.
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt` — iterate over the list; update the existence check; tweak the error message to be tool-neutral.
+- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt` — use the new field name; relax error-message assertion.
+- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/classpath/ClasspathBuilderTest.kt` — use the new parameter name.
+- `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojo.kt` — pass a single-element list.
 - `README.md` — document the Gradle plugin usage.
 
 ---
@@ -50,22 +50,22 @@
 ## Task 1: Rename `classesDirectory` → `classesDirectories` in core
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/ExtractConfig.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/classpath/ClasspathBuilder.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/classpath/ClasspathBuilderTest.kt`
-- Modify: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/maven/ExtractMojo.kt`
-- Modify: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/spring/extractor/maven/ExtractMojoTest.kt` (only if assertion text relies on Maven-specific wording — see Step 6)
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractConfig.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/classpath/ClasspathBuilder.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/classpath/ClasspathBuilderTest.kt`
+- Modify: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojo.kt`
+- Modify: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojoTest.kt` (only if assertion text relies on Maven-specific wording — see Step 6)
 
 Mechanical rename: existing tests cover the behaviour, so the work is to update production code + call sites + test data, then keep the suite green.
 
 - [ ] **Step 1: Update `ExtractConfig`**
 
-Replace the file at `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/ExtractConfig.kt` with:
+Replace the file at `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractConfig.kt` with:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor
+package community.flock.wirespec.bytecode.extractor
 
 import java.io.File
 
@@ -93,10 +93,10 @@ data class ExtractConfig(
 
 - [ ] **Step 2: Update `ClasspathBuilder.collectUrls` to accept a list**
 
-Replace `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/classpath/ClasspathBuilder.kt` with:
+Replace `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/classpath/ClasspathBuilder.kt` with:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.classpath
+package community.flock.wirespec.bytecode.extractor.classpath
 
 import java.io.File
 import java.net.URL
@@ -123,7 +123,7 @@ object ClasspathBuilder {
 
 - [ ] **Step 3: Update `ClasspathBuilderTest` for the new signature**
 
-In `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/classpath/ClasspathBuilderTest.kt`, replace the third test (`fromMavenInputs combines runtime classpath with output dir`) with:
+In `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/classpath/ClasspathBuilderTest.kt`, replace the third test (`fromMavenInputs combines runtime classpath with output dir`) with:
 
 ```kotlin
     @Test
@@ -147,7 +147,7 @@ In `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/cla
 
 - [ ] **Step 4: Update `WirespecExtractor.extract` to iterate the list**
 
-In `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt`, replace the top of `extract(config)` (lines 27–39) with:
+In `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`, replace the top of `extract(config)` (lines 27–39) with:
 
 ```kotlin
     fun extract(config: ExtractConfig): ExtractResult {
@@ -171,7 +171,7 @@ Leave everything below the URL collection unchanged (the `ClasspathBuilder.fromU
 
 - [ ] **Step 5: Update `WirespecExtractorTest` to the new API + message**
 
-In `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractorTest.kt`:
+In `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt`:
 
 1. Replace every `classesDirectory = thisModuleClassesDir()` with `classesDirectories = listOf(thisModuleClassesDir())`.
 2. Replace `classesDirectory = missing` with `classesDirectories = listOf(missing)`.
@@ -184,7 +184,7 @@ In `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/Wir
 
 - [ ] **Step 6: Update `ExtractMojo` + its test for the new field**
 
-In `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/maven/ExtractMojo.kt`, change the `ExtractConfig(...)` call (lines 42–50) to:
+In `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojo.kt`, change the `ExtractConfig(...)` call (lines 42–50) to:
 
 ```kotlin
             WirespecExtractor.extract(
@@ -280,7 +280,7 @@ plugins {
 }
 
 description = "Gradle plugin: extracts Spring Boot endpoints into Wirespec .ws files."
-base.archivesName.set("wirespec-spring-extractor-gradle-plugin")
+base.archivesName.set("wirespec-bytecode-extractor-gradle-plugin")
 
 kotlin {
     jvmToolchain(21)
@@ -288,13 +288,13 @@ kotlin {
 
 gradlePlugin {
     website.set("https://wirespec.io")
-    vcsUrl.set("https://github.com/flock-community/wirespec-spring-extractor")
+    vcsUrl.set("https://github.com/flock-community/wirespec-bytecode-extractor")
     plugins {
         register("wirespecExtractor") {
-            id = "community.flock.wirespec.spring.extractor"
-            displayName = "Wirespec Spring Extractor"
+            id = "community.flock.wirespec.bytecode.extractor"
+            displayName = "Wirespec Bytecode Extractor"
             description = project.description
-            implementationClass = "community.flock.wirespec.spring.extractor.gradle.WirespecExtractorPlugin"
+            implementationClass = "community.flock.wirespec.bytecode.extractor.gradle.WirespecExtractorPlugin"
             tags.set(listOf("wirespec", "spring", "openapi", "schema"))
         }
     }
@@ -316,14 +316,14 @@ tasks.test {
 
 // Configure the auto-generated `pluginMaven` publication (jar) + `<id>PluginMarkerMaven`
 // (marker) created by java-gradle-plugin. We override the jar's artifactId so the
-// Maven coordinate matches the descriptive `wirespec-spring-extractor-gradle-plugin`
+// Maven coordinate matches the descriptive `wirespec-bytecode-extractor-gradle-plugin`
 // rather than the module name.
 publishing {
     publications.withType<MavenPublication>().configureEach {
         if (name == "pluginMaven") {
-            artifactId = "wirespec-spring-extractor-gradle-plugin"
+            artifactId = "wirespec-bytecode-extractor-gradle-plugin"
             pom {
-                name.set("Wirespec Spring Extractor Gradle Plugin")
+                name.set("Wirespec Bytecode Extractor Gradle Plugin")
                 description.set(project.description)
             }
         }
@@ -344,8 +344,8 @@ publishing {
 Create an empty placeholder so Kotlin compile doesn't error on a missing source directory. From the repo root:
 
 ```
-mkdir -p extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle
-mkdir -p extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/spring/extractor/gradle
+mkdir -p extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle
+mkdir -p extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/gradle
 ```
 
 (Gradle tolerates an empty `src/main/kotlin`; no `.gitkeep` needed once Task 3 lands real sources.)
@@ -375,22 +375,22 @@ with the descriptive artifactId. Plugin sources land in the next commit."
 ## Task 3: Implement extension, task, log adapter, and plugin (TDD)
 
 **Files:**
-- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorExtension.kt`
-- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/GradleExtractLog.kt`
-- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/ExtractWirespecTask.kt`
-- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorPlugin.kt`
-- Create: `extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorPluginTest.kt`
+- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorExtension.kt`
+- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/GradleExtractLog.kt`
+- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/ExtractWirespecTask.kt`
+- Create: `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorPlugin.kt`
+- Create: `extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorPluginTest.kt`
 
 Unit tests use `ProjectBuilder` (in-memory project model) to verify plugin apply, extension creation, task registration, and the `assemble.dependsOn(extractWirespec)` wiring without spinning up a real build. The `TaskAction` itself (and the `GradleExtractLog` adapter) is exercised by Task 8's integration tests — Gradle's `Logger` interface is too large to stub usefully for a 4-line adapter, and the IT's `forwardOutput()` already verifies log routing implicitly.
 
 - [ ] **Step 1: Implement `GradleExtractLog`**
 
-Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/GradleExtractLog.kt`:
+Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/GradleExtractLog.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.gradle
+package community.flock.wirespec.bytecode.extractor.gradle
 
-import community.flock.wirespec.spring.extractor.ExtractLog
+import community.flock.wirespec.bytecode.extractor.ExtractLog
 import org.gradle.api.logging.Logger
 
 /**
@@ -410,10 +410,10 @@ internal class GradleExtractLog(private val logger: Logger) : ExtractLog {
 
 - [ ] **Step 2: Write the failing plugin/extension test**
 
-Create `extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorPluginTest.kt`:
+Create `extractor-gradle-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorPluginTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.gradle
+package community.flock.wirespec.bytecode.extractor.gradle
 
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -425,7 +425,7 @@ import java.io.File
 class WirespecExtractorPluginTest {
 
     private fun project() = ProjectBuilder.builder().build().also {
-        it.plugins.apply("community.flock.wirespec.spring.extractor")
+        it.plugins.apply("community.flock.wirespec.bytecode.extractor")
     }
 
     @Test
@@ -449,7 +449,7 @@ class WirespecExtractorPluginTest {
     fun `applying java plugin then ours registers extractWirespec`() {
         val project = ProjectBuilder.builder().build()
         project.plugins.apply("java")
-        project.plugins.apply("community.flock.wirespec.spring.extractor")
+        project.plugins.apply("community.flock.wirespec.bytecode.extractor")
 
         val task = project.tasks.findByName("extractWirespec")
         task.shouldNotBeNull()
@@ -459,7 +459,7 @@ class WirespecExtractorPluginTest {
     @Test
     fun `applying ours then java plugin still registers extractWirespec`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("community.flock.wirespec.spring.extractor")
+        project.plugins.apply("community.flock.wirespec.bytecode.extractor")
         project.plugins.apply("java")
 
         project.tasks.findByName("extractWirespec").shouldNotBeNull()
@@ -468,7 +468,7 @@ class WirespecExtractorPluginTest {
     @Test
     fun `extension outputDir defaults to build wirespec`() {
         val project = ProjectBuilder.builder().build()
-        project.plugins.apply("community.flock.wirespec.spring.extractor")
+        project.plugins.apply("community.flock.wirespec.bytecode.extractor")
 
         val ext = project.extensions.getByType(WirespecExtractorExtension::class.java)
 
@@ -480,7 +480,7 @@ class WirespecExtractorPluginTest {
     fun `assemble dependsOn extractWirespec when java plugin is applied`() {
         val project = ProjectBuilder.builder().build()
         project.plugins.apply("java")
-        project.plugins.apply("community.flock.wirespec.spring.extractor")
+        project.plugins.apply("community.flock.wirespec.bytecode.extractor")
 
         val assemble = project.tasks.getByName("assemble")
         val deps = assemble.taskDependencies.getDependencies(assemble).map { it.name }
@@ -499,10 +499,10 @@ Expected: FAIL with unresolved references for `WirespecExtractorExtension`, `Ext
 
 - [ ] **Step 4: Implement `WirespecExtractorExtension`**
 
-Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorExtension.kt`:
+Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorExtension.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.gradle
+package community.flock.wirespec.bytecode.extractor.gradle
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -525,14 +525,14 @@ abstract class WirespecExtractorExtension {
 
 - [ ] **Step 5: Implement `ExtractWirespecTask`**
 
-Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/ExtractWirespecTask.kt`:
+Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/ExtractWirespecTask.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.gradle
+package community.flock.wirespec.bytecode.extractor.gradle
 
-import community.flock.wirespec.spring.extractor.ExtractConfig
-import community.flock.wirespec.spring.extractor.WirespecExtractor
-import community.flock.wirespec.spring.extractor.WirespecExtractorException
+import community.flock.wirespec.bytecode.extractor.ExtractConfig
+import community.flock.wirespec.bytecode.extractor.WirespecExtractor
+import community.flock.wirespec.bytecode.extractor.WirespecExtractorException
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
@@ -587,10 +587,10 @@ abstract class ExtractWirespecTask : DefaultTask() {
 
 - [ ] **Step 6: Implement `WirespecExtractorPlugin`**
 
-Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/spring/extractor/gradle/WirespecExtractorPlugin.kt`:
+Create `extractor-gradle-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/gradle/WirespecExtractorPlugin.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.gradle
+package community.flock.wirespec.bytecode.extractor.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -598,14 +598,14 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSetContainer
 
 /**
- * Gradle entry point for the Wirespec Spring extractor.
+ * Gradle entry point for the Wirespec Bytecode extractor.
  *
  * Apply alongside any JVM source plugin (`java`, `kotlin("jvm")`, etc.):
  *
  * ```kotlin
  * plugins {
  *     kotlin("jvm")
- *     id("community.flock.wirespec.spring.extractor")
+ *     id("community.flock.wirespec.bytecode.extractor")
  * }
  * wirespec { basePackage.set("com.acme.api") }
  * ```
@@ -659,7 +659,7 @@ Expected: PASS — all 6 tests in `WirespecExtractorPluginTest`.
 git add extractor-gradle-plugin/src
 git commit -m "feat(gradle): add Gradle plugin shim over WirespecExtractor
 
-Apply with id 'community.flock.wirespec.spring.extractor' alongside any
+Apply with id 'community.flock.wirespec.bytecode.extractor' alongside any
 JVM source plugin. Registers an 'extractWirespec' task wired to
 sourceSets.main outputs + runtime classpath, with outputDir defaulting
 to build/wirespec and basePackage configurable via the 'wirespec'
@@ -688,11 +688,11 @@ Expected: BUILD SUCCESSFUL.
 find build/it-repo -type f -name "*.pom" -o -name "*.jar" -o -name "*.module" | sort
 ```
 Expected output includes:
-- `build/it-repo/community/flock/wirespec/spring/extractor/community.flock.wirespec.spring.extractor.gradle.plugin/0.0.0-SNAPSHOT/community.flock.wirespec.spring.extractor.gradle.plugin-0.0.0-SNAPSHOT.pom` (the **plugin marker** — its POM declares a dependency on the actual plugin artifact)
-- `build/it-repo/community/flock/wirespec/spring/wirespec-spring-extractor-gradle-plugin/0.0.0-SNAPSHOT/wirespec-spring-extractor-gradle-plugin-0.0.0-SNAPSHOT.jar` (the **plugin implementation jar**)
-- `build/it-repo/community/flock/wirespec/spring/wirespec-spring-extractor-gradle-plugin/0.0.0-SNAPSHOT/wirespec-spring-extractor-gradle-plugin-0.0.0-SNAPSHOT.pom` (its POM)
+- `build/it-repo/community/flock/wirespec/bytecode/extractor/community.flock.wirespec.bytecode.extractor.gradle.plugin/0.0.0-SNAPSHOT/community.flock.wirespec.bytecode.extractor.gradle.plugin-0.0.0-SNAPSHOT.pom` (the **plugin marker** — its POM declares a dependency on the actual plugin artifact)
+- `build/it-repo/community/flock/wirespec/bytecode/wirespec-bytecode-extractor-gradle-plugin/0.0.0-SNAPSHOT/wirespec-bytecode-extractor-gradle-plugin-0.0.0-SNAPSHOT.jar` (the **plugin implementation jar**)
+- `build/it-repo/community/flock/wirespec/bytecode/wirespec-bytecode-extractor-gradle-plugin/0.0.0-SNAPSHOT/wirespec-bytecode-extractor-gradle-plugin-0.0.0-SNAPSHOT.pom` (its POM)
 
-If the artifactId is `extractor-gradle-plugin` instead of `wirespec-spring-extractor-gradle-plugin`, the `publications.withType<MavenPublication>().configureEach { ... }` block in `build.gradle.kts` didn't apply. Re-verify Task 2 Step 3.
+If the artifactId is `extractor-gradle-plugin` instead of `wirespec-bytecode-extractor-gradle-plugin`, the `publications.withType<MavenPublication>().configureEach { ... }` block in `build.gradle.kts` didn't apply. Re-verify Task 2 Step 3.
 
 - [ ] **Step 3: No commit needed** — validation only.
 
@@ -819,7 +819,7 @@ Create `integration-tests-gradle/src/it/basic-kotlin-app/build.gradle.kts`:
 plugins {
     kotlin("jvm") version "2.1.20"
     // Substituted by the test runner with the plugin version under test.
-    id("community.flock.wirespec.spring.extractor") version "@project.version@"
+    id("community.flock.wirespec.bytecode.extractor") version "@project.version@"
 }
 
 dependencies {
@@ -965,7 +965,7 @@ Create `integration-tests-gradle/src/it/basic-spring-app/build.gradle.kts`:
 ```kotlin
 plugins {
     java
-    id("community.flock.wirespec.spring.extractor") version "@project.version@"
+    id("community.flock.wirespec.bytecode.extractor") version "@project.version@"
 }
 
 java {
@@ -1057,16 +1057,16 @@ javac flag enabled)."
 ## Task 8: Implement `GradleFixtureBuildTest` and run end-to-end
 
 **Files:**
-- Create: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- Create: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
 
 This is the TestKit driver — equivalent of `:integration-tests`'s `FixtureBuildTest.kt`. One `@TestFactory` emits two dynamic tests (`basic-kotlin-app`, `basic-spring-app`). The verifier methods are Kotlin ports of the Maven IT's verifiers, with `target/wirespec` → `build/wirespec`.
 
 - [ ] **Step 1: Create the test class**
 
-Create `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`:
+Create `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.it.gradle
+package community.flock.wirespec.bytecode.extractor.it.gradle
 
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.string.shouldContain
@@ -1285,7 +1285,7 @@ Expected for each: `UserController.ws` and `types.ws`.
 Most likely failure modes and fixes:
 
 - **`Plugin [id: '…'] was not found in any of the following sources`**: the marker artifact didn't make it to `it-repo`. Re-run Task 4 Step 2's inspection; check that the IT module's `tasks.test.dependsOn(":extractor-gradle-plugin:publishAllPublicationsToItLocalRepository")` line is present.
-- **`Could not resolve community.flock.wirespec.spring:wirespec-spring-extractor-gradle-plugin`**: the `dependencyResolutionManagement.repositories` block in the fixture's `settings.gradle.kts` is missing `@itRepo@` substitution. Verify the file is one of the two `substituteTokens` targets (it is — both `settings.gradle.kts` and `build.gradle.kts` are walked).
+- **`Could not resolve community.flock.wirespec.bytecode:wirespec-bytecode-extractor-gradle-plugin`**: the `dependencyResolutionManagement.repositories` block in the fixture's `settings.gradle.kts` is missing `@itRepo@` substitution. Verify the file is one of the two `substituteTokens` targets (it is — both `settings.gradle.kts` and `build.gradle.kts` are walked).
 - **`Could not find or load main class WirespecExtractor` / `ClassNotFoundException: io.github.classgraph...`**: `extractor-core` wasn't published to `it-repo`. Confirm the IT's `tasks.test.dependsOn(":extractor-core:publishMavenPublicationToItLocalRepository")` line.
 - **Verification regex failure (e.g. `endpoint ListUsers …`)**: actual output differs from Maven IT — diff `integration-tests-gradle/build/it-work/basic-kotlin-app/build/wirespec/` vs `integration-tests/build/it-work/basic-kotlin-app/target/wirespec/` (after a Maven IT run) to spot the regression.
 
@@ -1318,7 +1318,7 @@ In `README.md`, between the existing `## Usage` (Maven) section and the `## What
 ```kotlin
 plugins {
     kotlin("jvm") version "2.1.20"               // or `java`
-    id("community.flock.wirespec.spring.extractor") version "0.1.0"
+    id("community.flock.wirespec.bytecode.extractor") version "0.1.0"
 }
 
 wirespec {
@@ -1338,10 +1338,10 @@ trigger it directly.
 
 - [ ] **Step 2: Update the project title/intro line if needed**
 
-The README's `# wirespec-spring-extractor-maven-plugin` header is now narrower than what the repo ships. Change line 1 to:
+The README's `# wirespec-bytecode-extractor-maven-plugin` header is now narrower than what the repo ships. Change line 1 to:
 
 ```markdown
-# wirespec-spring-extractor
+# wirespec-bytecode-extractor
 ```
 
 And in the intro paragraph (line 3), change:
@@ -1382,6 +1382,6 @@ When all tasks are complete:
 
 1. `./gradlew clean check --no-daemon` runs to completion with no failures.
 2. The new `:integration-tests-gradle:test` task emits two passing dynamic tests (`basic-kotlin-app`, `basic-spring-app`).
-3. `find build/it-repo -name '*.pom'` shows both the plugin jar POM and the plugin marker POM under `community/flock/wirespec/spring/`.
+3. `find build/it-repo -name '*.pom'` shows both the plugin jar POM and the plugin marker POM under `community/flock/wirespec/bytecode/`.
 4. The README documents both Maven and Gradle usage.
 5. Six commits on the branch (one per task that produces a commit: Tasks 1, 2, 3, 5, 6, 7, 8, 9 — eight commits total; Task 4 is validation-only).

@@ -16,7 +16,7 @@
 
 These existing files are the source-of-truth for the patterns. They will be **deleted** in Task 9 after the generalized versions are wired in:
 
-- `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/kafka/KafkaListenerScanner.kt`
+- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt`
 - `.../extract/kafka/KafkaPayloadSelector.kt`
 - `.../extract/kafka/KafkaProducerScanner.kt`
 - `.../extract/kafka/KafkaProducerBytecodeWalker.kt`
@@ -98,16 +98,16 @@ git commit -m "build: add JMS/Rabbit/Pulsar/Integration test deps for messaging 
 ## Task 2: Create the MessagingBroker descriptor and broker table
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingBroker.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingBroker.kt`
 
 This descriptor is the single source of truth for every per-broker fact. It has no dependencies on the other new classes, so it compiles standalone. The old `extract.kafka` package remains in place and untouched until Task 9.
 
 - [ ] **Step 1: Write the descriptor and table**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingBroker.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingBroker.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 /**
  * Per-broker descriptor that drives the generalized messaging extraction.
@@ -225,7 +225,7 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingBroker.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingBroker.kt
 git commit -m "feat(messaging): add MessagingBroker descriptor and broker table"
 ```
 
@@ -234,15 +234,15 @@ git commit -m "feat(messaging): add MessagingBroker descriptor and broker table"
 ## Task 3: Generalize the payload selector (TDD)
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingPayloadSelector.kt`
-- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingPayloadSelectorTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingPayloadSelector.kt`
+- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingPayloadSelectorTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingPayloadSelectorTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingPayloadSelectorTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -338,10 +338,10 @@ Expected: FAIL — `MessagingPayloadSelector` unresolved (compilation error).
 
 - [ ] **Step 3: Write the implementation**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingPayloadSelector.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingPayloadSelector.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
@@ -438,7 +438,7 @@ Expected: PASS (all cases green).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingPayloadSelector.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingPayloadSelectorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingPayloadSelector.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingPayloadSelectorTest.kt
 git commit -m "feat(messaging): broker-parameterized payload selector"
 ```
 
@@ -447,15 +447,15 @@ git commit -m "feat(messaging): broker-parameterized payload selector"
 ## Task 4: Generalize the listener scanner (TDD)
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingListenerScanner.kt`
-- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingListenerScannerTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingListenerScanner.kt`
+- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingListenerScannerTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingListenerScannerTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingListenerScannerTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -468,7 +468,7 @@ class MessagingListenerScannerTest {
 
     data class Order(val id: String)
 
-    private val pkg = "community.flock.wirespec.spring.extractor.extract.messaging"
+    private val pkg = "community.flock.wirespec.bytecode.extractor.extract.messaging"
 
     @Suppress("unused")
     class JmsConsumer {
@@ -524,10 +524,10 @@ Expected: FAIL — `MessagingListenerScanner` unresolved.
 
 - [ ] **Step 3: Write the implementation**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingListenerScanner.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingListenerScanner.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import io.github.classgraph.ClassGraph
 import java.lang.reflect.Method
@@ -621,7 +621,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingListenerScanner.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingListenerScannerTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingListenerScanner.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingListenerScannerTest.kt
 git commit -m "feat(messaging): broker-parameterized listener scanner"
 ```
 
@@ -630,17 +630,17 @@ git commit -m "feat(messaging): broker-parameterized listener scanner"
 ## Task 5: Generalize the producer scanner (TDD)
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerScanner.kt`
-- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerScannerTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerScanner.kt`
+- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerScannerTest.kt`
 
 `TemplateField.valueClass` is non-null for generic templates (recovered from field generics) and null for non-generic templates (resolved at the send site by the walker).
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerScannerTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerScannerTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -652,7 +652,7 @@ class MessagingProducerScannerTest {
 
     data class Order(val id: String)
 
-    private val pkg = "community.flock.wirespec.spring.extractor.extract.messaging"
+    private val pkg = "community.flock.wirespec.bytecode.extractor.extract.messaging"
 
     @Suppress("unused")
     class KafkaPublisher(private val orders: KafkaTemplate<String, Order>)
@@ -693,10 +693,10 @@ Expected: FAIL — `MessagingProducerScanner` unresolved.
 
 - [ ] **Step 3: Write the implementation**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerScanner.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerScanner.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import io.github.classgraph.ClassGraph
 import java.lang.reflect.ParameterizedType
@@ -795,7 +795,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerScanner.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerScannerTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerScanner.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerScannerTest.kt
 git commit -m "feat(messaging): broker-parameterized producer scanner"
 ```
 
@@ -804,17 +804,17 @@ git commit -m "feat(messaging): broker-parameterized producer scanner"
 ## Task 6: Generalize the producer bytecode walker (TDD)
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerWalker.kt`
-- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerWalkerTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerWalker.kt`
+- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerWalkerTest.kt`
 
 The walker handles two payload-recovery strategies: generic templates use the field's recovered value class; non-generic templates recover the payload type from the static type of the last value-producing instruction before the `convertAndSend` INVOKE.
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerWalkerTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerWalkerTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -891,10 +891,10 @@ Expected: FAIL — `MessagingProducerWalker` unresolved.
 
 - [ ] **Step 3: Write the implementation**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerWalker.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerWalker.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
@@ -1072,7 +1072,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerWalker.kt extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingProducerWalkerTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerWalker.kt extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingProducerWalkerTest.kt
 git commit -m "feat(messaging): producer walker with non-generic arg-type recovery"
 ```
 
@@ -1081,19 +1081,19 @@ git commit -m "feat(messaging): producer walker with non-generic arg-type recove
 ## Task 7: Generalize the channel extractor
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingChannelExtractor.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingChannelExtractor.kt`
 
 This is a direct generalization of `KafkaChannelExtractor` over the messaging site types. Behavior (PascalCase naming, multi-type disambiguation) is unchanged; coverage comes from the integration tests (Tasks 10–11), matching the original Kafka design which had no dedicated unit test for this class.
 
 - [ ] **Step 1: Write the implementation**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingChannelExtractor.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingChannelExtractor.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.extract.messaging
+package community.flock.wirespec.bytecode.extractor.extract.messaging
 
-import community.flock.wirespec.spring.extractor.extract.TypeExtractor
-import community.flock.wirespec.spring.extractor.model.Channel
+import community.flock.wirespec.bytecode.extractor.extract.TypeExtractor
+import community.flock.wirespec.bytecode.extractor.model.Channel
 
 /**
  * Turns messaging scan results into [Channel] domain values. Payload selection
@@ -1154,7 +1154,7 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 3: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/messaging/MessagingChannelExtractor.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/messaging/MessagingChannelExtractor.kt
 git commit -m "feat(messaging): broker-parameterized channel extractor"
 ```
 
@@ -1163,7 +1163,7 @@ git commit -m "feat(messaging): broker-parameterized channel extractor"
 ## Task 8: Wire the messaging loop into WirespecExtractor
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`
 
 Replace the Kafka-specific imports and the Kafka block (lines ~110–145) with a single loop over `MessagingBroker.ALL`. The old `extract.kafka` package is still present and compiles; it is deleted in Task 9.
 
@@ -1172,20 +1172,20 @@ Replace the Kafka-specific imports and the Kafka block (lines ~110–145) with a
 In `WirespecExtractor.kt`, replace these four import lines:
 
 ```kotlin
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaChannelExtractor
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaListenerScanner
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaProducerBytecodeWalker
-import community.flock.wirespec.spring.extractor.extract.kafka.KafkaProducerScanner
+import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaChannelExtractor
+import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaListenerScanner
+import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaProducerBytecodeWalker
+import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaProducerScanner
 ```
 
 with:
 
 ```kotlin
-import community.flock.wirespec.spring.extractor.extract.messaging.MessagingBroker
-import community.flock.wirespec.spring.extractor.extract.messaging.MessagingChannelExtractor
-import community.flock.wirespec.spring.extractor.extract.messaging.MessagingListenerScanner
-import community.flock.wirespec.spring.extractor.extract.messaging.MessagingProducerScanner
-import community.flock.wirespec.spring.extractor.extract.messaging.MessagingProducerWalker
+import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingBroker
+import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingChannelExtractor
+import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingListenerScanner
+import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingProducerScanner
+import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingProducerWalker
 ```
 
 - [ ] **Step 2: Replace the Kafka block with the broker loop**
@@ -1236,7 +1236,7 @@ Expected: PASS. The existing Kafka unit tests (still present in `extract/kafka/`
 - [ ] **Step 4: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/WirespecExtractor.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt
 git commit -m "feat(messaging): drive extraction from the MessagingBroker table"
 ```
 
@@ -1245,8 +1245,8 @@ git commit -m "feat(messaging): drive extraction from the MessagingBroker table"
 ## Task 9: Delete the old Kafka package and its tests
 
 **Files:**
-- Delete: `extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/kafka/` (all 5 files)
-- Delete: `extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/kafka/` (all 4 test files)
+- Delete: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/` (all 5 files)
+- Delete: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/` (all 4 test files)
 
 The generalized package fully replaces the Kafka-specific one; nothing references `extract.kafka` after Task 8.
 
@@ -1258,8 +1258,8 @@ Expected: no output (zero matches).
 - [ ] **Step 2: Delete the directories**
 
 ```bash
-git rm -r extractor-core/src/main/kotlin/community/flock/wirespec/spring/extractor/extract/kafka
-git rm -r extractor-core/src/test/kotlin/community/flock/wirespec/spring/extractor/extract/kafka
+git rm -r extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka
+git rm -r extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka
 ```
 
 - [ ] **Step 3: Run the full unit suite**
@@ -1288,8 +1288,8 @@ git commit -m "refactor(messaging): remove Kafka-specific package, superseded by
 - Create: `integration-tests-gradle/src/it/messaging-app/src/main/kotlin/com/acme/api/PulsarConsumer.kt`
 - Create: `integration-tests-gradle/src/it/messaging-app/src/main/kotlin/com/acme/api/PulsarPublisher.kt`
 - Create: `integration-tests-gradle/src/it/messaging-app/src/main/kotlin/com/acme/api/IntegrationConsumer.kt`
-- Create: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/MessagingFixtureVerifier.kt`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- Create: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/MessagingFixtureVerifier.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
 
 **Naming note:** each listener/producer method name is globally unique (per-broker prefix) because channel names are deduplicated globally across all `.ws` files (see `[[wirespec-names-globally-unique]]`); unique method names keep the asserted channel names stable.
 
@@ -1323,7 +1323,7 @@ Create `integration-tests-gradle/src/it/messaging-app/build.gradle.kts`:
 ```kotlin
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("community.flock.wirespec.spring.extractor") version "@project.version@"
+    id("community.flock.wirespec.bytecode.extractor") version "@project.version@"
 }
 
 dependencies {
@@ -1503,10 +1503,10 @@ class IntegrationConsumer {
 
 - [ ] **Step 8: Write the verifier**
 
-Create `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/MessagingFixtureVerifier.kt`:
+Create `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/MessagingFixtureVerifier.kt`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.it.gradle
+package community.flock.wirespec.bytecode.extractor.it.gradle
 
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.string.shouldContain
@@ -1584,7 +1584,7 @@ object MessagingFixtureVerifier {
 
 - [ ] **Step 9: Register the fixture in the dispatch**
 
-In `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt`, in the `when (fixture.name) { ... }` block in `runFixture`, add this line immediately after the `"kafka-app" -> ...` line:
+In `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`, in the `when (fixture.name) { ... }` block in `runFixture`, add this line immediately after the `"kafka-app" -> ...` line:
 
 ```kotlin
             "messaging-app"    -> MessagingFixtureVerifier.verify(File(workDir, "build/wirespec"))
@@ -1598,7 +1598,7 @@ Expected: PASS — the `messaging-app` dynamic test (and existing `kafka-app`) a
 - [ ] **Step 11: Commit**
 
 ```bash
-git add integration-tests-gradle/src/it/messaging-app integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/MessagingFixtureVerifier.kt integration-tests-gradle/src/test/kotlin/community/flock/wirespec/spring/extractor/it/gradle/GradleFixtureBuildTest.kt
+git add integration-tests-gradle/src/it/messaging-app integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/MessagingFixtureVerifier.kt integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt
 git commit -m "test(it): combined JMS/Rabbit/Pulsar/Integration messaging fixture (Gradle)"
 ```
 
@@ -1617,8 +1617,8 @@ git commit -m "test(it): combined JMS/Rabbit/Pulsar/Integration messaging fixtur
 - Create: `integration-tests-maven/src/it/messaging-app/src/main/kotlin/com/acme/api/PulsarConsumer.kt`
 - Create: `integration-tests-maven/src/it/messaging-app/src/main/kotlin/com/acme/api/PulsarPublisher.kt`
 - Create: `integration-tests-maven/src/it/messaging-app/src/main/kotlin/com/acme/api/IntegrationConsumer.kt`
-- Create: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/MessagingFixtureVerifier.kt`
-- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt`
+- Create: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/MessagingFixtureVerifier.kt`
+- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`
 
 - [ ] **Step 1: Write the fixture pom**
 
@@ -1704,8 +1704,8 @@ Create `integration-tests-maven/src/it/messaging-app/pom.xml`:
             </plugin>
 
             <plugin>
-                <groupId>community.flock.wirespec.spring</groupId>
-                <artifactId>wirespec-spring-extractor-maven-plugin</artifactId>
+                <groupId>community.flock.wirespec.bytecode</groupId>
+                <artifactId>wirespec-bytecode-extractor-maven-plugin</artifactId>
                 <version>@project.version@</version>
                 <extensions>true</extensions>
                 <configuration>
@@ -1740,10 +1740,10 @@ Files copied: `Events.kt`, `JmsConsumer.kt`, `JmsPublisher.kt`, `RabbitConsumer.
 
 - [ ] **Step 4: Write the Maven verifier**
 
-Create `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/MessagingFixtureVerifier.kt` with the same assertions as the Gradle verifier (Task 10, Step 8), but in package `community.flock.wirespec.spring.extractor.it`:
+Create `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/MessagingFixtureVerifier.kt` with the same assertions as the Gradle verifier (Task 10, Step 8), but in package `community.flock.wirespec.bytecode.extractor.it`:
 
 ```kotlin
-package community.flock.wirespec.spring.extractor.it
+package community.flock.wirespec.bytecode.extractor.it
 
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.string.shouldContain
@@ -1816,7 +1816,7 @@ object MessagingFixtureVerifier {
 
 - [ ] **Step 5: Register the fixture in the Maven dispatch**
 
-In `integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt`, in the `when (fixture.name) { ... }` block in `runFixture`, add this line immediately after the `"kafka-app" -> ...` line:
+In `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`, in the `when (fixture.name) { ... }` block in `runFixture`, add this line immediately after the `"kafka-app" -> ...` line:
 
 ```kotlin
             "messaging-app"    -> MessagingFixtureVerifier.verify(File(workDir, "target/wirespec"))
@@ -1830,7 +1830,7 @@ Expected: PASS — the `messaging-app` dynamic test (and existing `kafka-app`) a
 - [ ] **Step 7: Commit**
 
 ```bash
-git add integration-tests-maven/src/it/messaging-app integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/MessagingFixtureVerifier.kt integration-tests-maven/src/test/kotlin/community/flock/wirespec/spring/extractor/it/FixtureBuildTest.kt
+git add integration-tests-maven/src/it/messaging-app integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/MessagingFixtureVerifier.kt integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt
 git commit -m "test(it): combined JMS/Rabbit/Pulsar/Integration messaging fixture (Maven)"
 ```
 
