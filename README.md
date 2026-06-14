@@ -24,6 +24,9 @@ auto-binds to `process-classes`:
         <output>${project.build.directory}/wirespec</output>
         <!-- optional — only scan classes under this package -->
         <basePackage>com.acme.api</basePackage>
+        <!-- optional — both default to true. Disable a path to extract only the other. -->
+        <extractSpring>true</extractSpring>
+        <extractOpenApi>true</extractOpenApi>
       </configuration>
     </plugin>
   </plugins>
@@ -84,6 +87,10 @@ wirespecExtractor {
 
     // optional — only scan classes under this package
     basePackage.set("com.acme.api")
+
+    // optional — both default to true. Disable a path to extract only the other.
+    // extractSpring.set(true)    // Spring MVC controllers, DSL routes, messaging
+    // extractOpenApi.set(true)   // JAX-RS resources + swagger annotations
 }
 ```
 
@@ -111,6 +118,10 @@ tasks.withType<JavaCompile>().configureEach {
 
 wirespecExtractor {
     basePackage.set("com.acme.api")
+
+    // optional — both default to true
+    // extractSpring.set(true)
+    // extractOpenApi.set(true)
 }
 ```
 
@@ -356,6 +367,11 @@ JAX-RS annotations are read reflectively by fully-qualified name, so — like th
 messaging scanners — the extractor needs no JAX-RS API on its own classpath and
 cleanly no-ops on projects that don't use JAX-RS. Resources are emitted to a
 `<ResourceName>.ws` file, the same convention used for controllers.
+
+The Spring and JAX-RS/OpenAPI paths run independently and can be toggled via
+`extractSpring` / `extractOpenApi` (both default `true`) — set one to `false` to
+extract only the other. See the [Maven](#usage-maven) and [Gradle](#usage-gradle)
+configuration above.
 
 ### Kafka extraction
 

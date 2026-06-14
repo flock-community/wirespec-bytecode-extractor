@@ -26,6 +26,14 @@ class ExtractMojo : AbstractMojo() {
     @Parameter(property = "wirespec.basePackage")
     var basePackage: String? = null
 
+    /** Extract Spring MVC controllers, functional-DSL routes, and messaging channels. */
+    @Parameter(property = "wirespec.extractSpring", defaultValue = "true")
+    var extractSpring: Boolean = true
+
+    /** Extract JAX-RS resources whose OpenAPI detail is driven by swagger annotations. */
+    @Parameter(property = "wirespec.extractOpenApi", defaultValue = "true")
+    var extractOpenApi: Boolean = true
+
     @Parameter(defaultValue = "\${project}", readonly = true, required = true)
     lateinit var project: MavenProject
 
@@ -45,6 +53,8 @@ class ExtractMojo : AbstractMojo() {
                     runtimeClasspath = runtimeClasspath,
                     outputDirectory = output,
                     basePackage = basePackage,
+                    extractSpring = extractSpring,
+                    extractOpenApi = extractOpenApi,
                     log = MavenExtractLog(log),
                 )
             )

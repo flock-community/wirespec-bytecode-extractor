@@ -44,6 +44,36 @@ class JaxRsExtractionTest {
     }
 
     @Test
+    fun `extractOpenApi=false skips JAX-RS resources`(@TempDir tmp: Path) {
+        val out = File(tmp.toFile(), "ws").apply { mkdirs() }
+        val result = WirespecExtractor.extract(
+            ExtractConfig(
+                classesDirectories = listOf(jaxrsClassesDir()),
+                runtimeClasspath = emptyList(),
+                outputDirectory = out,
+                basePackage = "community.flock.wirespec.bytecode.extractor.fixtures.jaxrs",
+                extractOpenApi = false,
+            )
+        )
+        result.filesWritten.map { it.name }.contains("UserResource.ws") shouldBe false
+    }
+
+    @Test
+    fun `extractSpring=false still extracts JAX-RS resources`(@TempDir tmp: Path) {
+        val out = File(tmp.toFile(), "ws").apply { mkdirs() }
+        val result = WirespecExtractor.extract(
+            ExtractConfig(
+                classesDirectories = listOf(jaxrsClassesDir()),
+                runtimeClasspath = emptyList(),
+                outputDirectory = out,
+                basePackage = "community.flock.wirespec.bytecode.extractor.fixtures.jaxrs",
+                extractSpring = false,
+            )
+        )
+        result.filesWritten.map { it.name } shouldContain "UserResource.ws"
+    }
+
+    @Test
     fun `JAX-RS extraction no-ops for a package without resources`(@TempDir tmp: Path) {
         val out = File(tmp.toFile(), "ws").apply { mkdirs() }
         // The plain Spring fixtures package contains no JAX-RS resources; extraction

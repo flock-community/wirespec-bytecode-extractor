@@ -36,6 +36,12 @@ abstract class ExtractWirespecTask : DefaultTask() {
     @get:Input @get:Optional
     abstract val basePackage: Property<String>
 
+    @get:Input @get:Optional
+    abstract val extractSpring: Property<Boolean>
+
+    @get:Input @get:Optional
+    abstract val extractOpenApi: Property<Boolean>
+
     @TaskAction
     fun run() {
         try {
@@ -45,6 +51,8 @@ abstract class ExtractWirespecTask : DefaultTask() {
                     runtimeClasspath = runtimeClasspath.files.toList(),
                     outputDirectory = outputDirectory.asFile.get(),
                     basePackage = basePackage.orNull,
+                    extractSpring = extractSpring.getOrElse(true),
+                    extractOpenApi = extractOpenApi.getOrElse(true),
                     log = GradleExtractLog(logger),
                 ),
             )
