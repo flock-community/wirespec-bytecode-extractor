@@ -69,21 +69,13 @@ class EndpointExtractor(
         return listOfNotNull(left, right).joinToString("/")
     }
 
+    // Resolve each variable's type from its @PathVariable parameter so non-String
+    // path variables (enums, refined types, …) surface correctly; PathParser falls
+    // back to STRING when there's no matching parameter to bind to.
     internal fun parsePath(
         path: String,
         pathParamTypes: Map<String, WireType> = emptyMap(),
-    ): List<PathSegment> =
-        path.split('/').filter { it.isNotBlank() }.map { seg ->
-            val match = Regex("""^\{([^:}]+)(?::[^}]+)?}$""").matchEntire(seg)
-            if (match != null) {
-                val varName = match.groupValues[1]
-                // Resolve the variable's type from its @PathVariable parameter so non-String
-                // path variables (enums, refined types, …) surface correctly; fall back to
-                // STRING when there's no matching parameter to bind to.
-                val type = pathParamTypes[varName] ?: WireType.Primitive(WireType.Primitive.Kind.STRING)
-                PathSegment.Variable(varName, type)
-            } else PathSegment.Literal(seg)
-        }
+    ): List<PathSegment> = PathParser.parse(path, pathParamTypes)
 
     internal fun pascalCase(name: String): String =
         if (name.isEmpty()) name else name[0].uppercaseChar() + name.substring(1)
