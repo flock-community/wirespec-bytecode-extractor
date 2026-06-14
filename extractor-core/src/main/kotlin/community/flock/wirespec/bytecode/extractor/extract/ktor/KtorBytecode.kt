@@ -1,5 +1,6 @@
 package community.flock.wirespec.bytecode.extractor.extract.ktor
 
+import community.flock.wirespec.bytecode.extractor.model.WireType.Primitive.Kind
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.AbstractInsnNode
@@ -37,6 +38,37 @@ internal object KtorBytecode {
     const val TYPE_INFO = "io/ktor/util/reflect/TypeInfo"
     const val HTTP_STATUS_COMPANION = "io/ktor/http/HttpStatusCode\$Companion"
     const val HTTP_METHOD_COMPANION = "io/ktor/http/HttpMethod\$Companion"
+
+    // --- query / header parameters (server) --------------------------------
+    const val PARAMETERS = "io/ktor/http/Parameters"
+    const val HEADERS = "io/ktor/http/Headers"
+    const val STRING_VALUES = "io/ktor/util/StringValues"
+    const val REQUEST_PROPERTIES = "io/ktor/server/request/ApplicationRequestPropertiesKt"
+
+    /**
+     * Maps a `String.toXxx()` conversion call (by owner+name) that the handler
+     * applies to a looked-up query/header value to the Wirespec primitive kind it
+     * implies. Absence means the value stays a `String`.
+     */
+    fun conversionKind(owner: String, name: String): Kind? = CONVERSIONS[owner to name]
+
+    private val CONVERSIONS: Map<Pair<String, String>, Kind> = mapOf(
+        ("java/lang/Boolean" to "parseBoolean") to Kind.BOOLEAN,
+        ("java/lang/Integer" to "parseInt") to Kind.INTEGER_32,
+        ("java/lang/Long" to "parseLong") to Kind.INTEGER_64,
+        ("java/lang/Double" to "parseDouble") to Kind.NUMBER_64,
+        ("java/lang/Float" to "parseFloat") to Kind.NUMBER_32,
+        ("kotlin/text/StringsKt" to "toBoolean") to Kind.BOOLEAN,
+        ("kotlin/text/StringsKt" to "toBooleanStrictOrNull") to Kind.BOOLEAN,
+        ("kotlin/text/StringsKt" to "toInt") to Kind.INTEGER_32,
+        ("kotlin/text/StringsKt" to "toIntOrNull") to Kind.INTEGER_32,
+        ("kotlin/text/StringsKt" to "toLong") to Kind.INTEGER_64,
+        ("kotlin/text/StringsKt" to "toLongOrNull") to Kind.INTEGER_64,
+        ("kotlin/text/StringsKt" to "toDouble") to Kind.NUMBER_64,
+        ("kotlin/text/StringsKt" to "toDoubleOrNull") to Kind.NUMBER_64,
+        ("kotlin/text/StringsKt" to "toFloat") to Kind.NUMBER_32,
+        ("kotlin/text/StringsKt" to "toFloatOrNull") to Kind.NUMBER_32,
+    )
 
     // --- client request builders -------------------------------------------
     const val CLIENT_REQUEST_KT = "io/ktor/client/request/HttpRequestKt"

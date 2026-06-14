@@ -422,6 +422,11 @@ file (a top-level `fun Application.module()` lands in its `…Kt` file facade).
   `options`, with the path taken from `route("/prefix") { }` nesting and/or an
   inline `get("/path") { }` argument. Ktor path parameters (`{id}`, `{id?}`,
   `{id...}`) become Wirespec path variables.
+- Query and header parameters: recovered heuristically from
+  `call.request.queryParameters["k"]`, `call.request.headers["k"]`, and
+  `call.request.header("k")` inside the handler body. Keys must be string
+  literals. Values default to `String?`; an immediately-applied conversion
+  (`?.toInt()`, `?.toBoolean()`, `?.toLong()`, …) upgrades the type.
 - Request body: recovered from `call.receive<T>()`.
 - Responses: `call.respond(value)` yields a `200` with the value's type;
   `call.respond(HttpStatusCode.Created, value)` and `call.respond(status)` use
@@ -466,8 +471,11 @@ class UserClient(private val client: HttpClient) {
 - Routing config lambdas are followed when the Kotlin compiler emits them as
   `invokedynamic` (the default since Kotlin 2.0); handler bodies in DSL position
   (`get { … }`) are read as generated suspend-lambda classes.
-- Query / header / cookie parameters (`call.request.queryParameters[...]`) are
-  not extracted — only path, method, request body, and responses.
+- Query / header parameters are recovered only when the lookup key is a string
+  literal; dynamic keys, values read via `call.parameters[...]` (which merges
+  path and query), and cookie parameters are not extracted. Required-vs-optional
+  is not inferred — recovered params are always emitted nullable, matching the
+  `String?` the lookup returns.
 - Response/request bodies are recovered from the reified `receive` / `respond` /
   `setBody` / `body` type arguments; bodies passed via non-reified overloads are
   not read.

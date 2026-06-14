@@ -70,6 +70,20 @@ class KtorExtractorTest {
     }
 
     @Test
+    fun `extracts Ktor query and header parameters from the handler body`(@TempDir tmp: Path) {
+        val files = extract(tmp)
+        val ws = files.single { it.name == "KtorSearchRoutesKt.ws" }.readText()
+
+        // Query params, with type upgraded from String via ?.toBoolean()/?.toInt().
+        ws shouldContain "active: Boolean?"
+        ws shouldContain "page: Integer32?"
+        ws shouldContain "q: String?"
+        // Header params (incl. the request.header("…") extension form).
+        ws shouldContain "X-Trace"
+        ws shouldContain "Authorization"
+    }
+
+    @Test
     fun `extractKtor=false skips Ktor server and client`(@TempDir tmp: Path) {
         val files = WirespecExtractor.extract(
             ExtractConfig(
