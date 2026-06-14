@@ -9,6 +9,7 @@ import community.flock.wirespec.bytecode.extractor.extract.TypeExtractor
 import community.flock.wirespec.bytecode.extractor.extract.dsl.DslBytecodeWalker
 import community.flock.wirespec.bytecode.extractor.extract.dsl.DslEndpointExtractor
 import community.flock.wirespec.bytecode.extractor.extract.dsl.DslRouteScanner
+import community.flock.wirespec.bytecode.extractor.extract.jaxrs.JaxRsEndpointExtractor
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingBroker
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingChannelExtractor
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingListenerScanner
@@ -16,6 +17,7 @@ import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingPr
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingProducerWalker
 import community.flock.wirespec.bytecode.extractor.ownership.TypeOwnership
 import community.flock.wirespec.bytecode.extractor.scan.ControllerScanner
+import community.flock.wirespec.bytecode.extractor.scan.JaxRsResourceScanner
 import java.io.File
 
 /**
@@ -51,22 +53,37 @@ object WirespecExtractor {
         val effectiveBasePackage = effectiveBasePackage(config.basePackage)
         val scanPackages = listOfNotNull(effectiveBasePackage)
 
+        if (!config.extractSpring && !config.extractOpenApi) {
+            config.log.warn("Both Spring and OpenAPI extraction are disabled; nothing to extract.")
+        }
+
         return ClasspathBuilder.fromUrls(urls, parent = javaClass.classLoader).use { loader ->
-            val controllers = ControllerScanner.scan(
-                loader, scanPackages, effectiveBasePackage,
-                onWarn = { msg -> config.log.warn(msg) },
-            )
-            config.log.info("Found ${controllers.size} controller(s)")
+            val controllers = if (config.extractSpring) {
+                ControllerScanner.scan(
+                    loader, scanPackages, effectiveBasePackage,
+                    onWarn = { msg -> config.log.warn(msg) },
+                ).also { config.log.info("Found ${it.size} controller(s)") }
+            } else emptyList()
 
-            val dslConfigs = DslRouteScanner.scan(
-                loader, scanPackages, effectiveBasePackage,
-                onWarn = { msg -> config.log.warn(msg) },
-            )
-            if (dslConfigs.isNotEmpty()) {
-                config.log.info("Found ${dslConfigs.size} functional-DSL configuration(s)")
-            }
+            val dslConfigs = if (config.extractSpring) {
+                DslRouteScanner.scan(
+                    loader, scanPackages, effectiveBasePackage,
+                    onWarn = { msg -> config.log.warn(msg) },
+                ).also {
+                    if (it.isNotEmpty()) config.log.info("Found ${it.size} functional-DSL configuration(s)")
+                }
+            } else emptyList()
 
-            val collisions = detectControllerCollisions(controllers + dslConfigs)
+            val jaxrsResources = if (config.extractOpenApi) {
+                JaxRsResourceScanner.scan(
+                    loader, scanPackages, effectiveBasePackage,
+                    onWarn = { msg -> config.log.warn(msg) },
+                ).also {
+                    if (it.isNotEmpty()) config.log.info("Found ${it.size} JAX-RS resource(s)")
+                }
+            } else emptyList()
+
+            val collisions = detectControllerCollisions(controllers + dslConfigs + jaxrsResources)
             if (collisions.isNotEmpty()) {
                 val msg = collisions.entries.joinToString("; ") { (name, classes) ->
                     "$name in [${classes.joinToString(", ")}]"
@@ -77,6 +94,7 @@ object WirespecExtractor {
             val types = TypeExtractor()
             val endpoints = EndpointExtractor(types, onWarn = { msg -> config.log.warn(msg) })
             val dslEndpoints = DslEndpointExtractor(types, loader, onWarn = { msg -> config.log.warn(msg) })
+            val jaxrsEndpoints = JaxRsEndpointExtractor(types, onWarn = { msg -> config.log.warn(msg) })
             val builder = WirespecAstBuilder()
 
             val byController = controllers.associate { c ->
@@ -108,9 +126,25 @@ object WirespecExtractor {
                 }
             }
 
+            // -- JAX-RS resources (routing from @Path/@GET/…, OpenAPI detail from swagger) ----
+            for (resource in jaxrsResources) {
+                val eps = try {
+                    jaxrsEndpoints.extract(resource).map(builder::toEndpoint)
+                } catch (e: WirespecExtractorException) {
+                    throw e
+                } catch (t: Throwable) {
+                    config.log.warn("Skipping JAX-RS ${resource.name}: ${t.message}")
+                    emptyList()
+                }
+                if (eps.isNotEmpty()) {
+                    val key = resource.simpleName
+                    byController[key] = byController[key].orEmpty() + eps.map { it as Definition }
+                }
+            }
+
             // -- Messaging channels (Kafka, JMS, Rabbit, Pulsar, Spring Integration) ----
             val messagingExtractor = MessagingChannelExtractor(types, onWarn = { msg -> config.log.warn(msg) })
-            for (broker in MessagingBroker.ALL) {
+            for (broker in if (config.extractSpring) MessagingBroker.ALL else emptyList()) {
                 val listenerSites = MessagingListenerScanner.scan(
                     loader, scanPackages, effectiveBasePackage, broker,
                     onWarn = { msg -> config.log.warn(msg) },

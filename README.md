@@ -24,6 +24,9 @@ auto-binds to `process-classes`:
         <output>${project.build.directory}/wirespec</output>
         <!-- optional — only scan classes under this package -->
         <basePackage>com.acme.api</basePackage>
+        <!-- optional — both default to true. Disable a path to extract only the other. -->
+        <extractSpring>true</extractSpring>
+        <extractOpenApi>true</extractOpenApi>
       </configuration>
     </plugin>
   </plugins>
@@ -84,6 +87,10 @@ wirespecExtractor {
 
     // optional — only scan classes under this package
     basePackage.set("com.acme.api")
+
+    // optional — both default to true. Disable a path to extract only the other.
+    // extractSpring.set(true)    // Spring MVC controllers, DSL routes, messaging
+    // extractOpenApi.set(true)   // JAX-RS resources + swagger annotations
 }
 ```
 
@@ -111,6 +118,10 @@ tasks.withType<JavaCompile>().configureEach {
 
 wirespecExtractor {
     basePackage.set("com.acme.api")
+
+    // optional — both default to true
+    // extractSpring.set(true)
+    // extractOpenApi.set(true)
 }
 ```
 
@@ -148,6 +159,10 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
   Spring MVC Kotlin `router { }`, and the Java fluent
   `RouterFunctions.route()` builder. See
   [Functional DSL routes](#functional-dsl-routes).
+- JAX-RS resources — classes routed with `@Path` / `@GET` / `@POST` / … where
+  the OpenAPI detail (parameters, request body, responses, schemas, operation
+  names) is driven entirely by swagger/OpenAPI annotations. See
+  [JAX-RS resources](#jax-rs-resources-swagger-driven).
 - Spring Kafka listeners and producers — emitted as Wirespec
   `channel` definitions. See [Kafka extraction](#kafka-extraction).
 
@@ -294,6 +309,69 @@ class RouterConfig {
   `request.bodyToMono` calls.
 - Predicates other than `path()` / `nest()` (`accept(...)`, `contentType(...)`,
   `headers(...)`) are ignored for path purposes.
+
+### JAX-RS resources (swagger-driven)
+
+Alongside Spring controllers, the extractor discovers **JAX-RS root resources** —
+classes annotated with `@Path` (either the `jakarta.ws.rs` or the legacy
+`javax.ws.rs` namespace). This is the classic non-Spring OpenAPI stack
+(Jersey / RESTEasy / Quarkus).
+
+Routing is read from JAX-RS annotations; **everything else is driven by
+swagger/OpenAPI annotations**:
+
+- **Path + HTTP method** come from class- and method-level `@Path` plus the
+  `@GET` / `@POST` / `@PUT` / `@PATCH` / `@DELETE` / `@HEAD` / `@OPTIONS`
+  annotations (discovered via the JAX-RS `@HttpMethod` meta-annotation, so
+  custom HTTP-method annotations work too). Swagger annotations carry no URL
+  path, which is why routing must come from JAX-RS.
+- **Parameters** come from `@PathParam` / `@QueryParam` / `@HeaderParam` /
+  `@CookieParam`, or from a swagger `@Parameter(in = …)` when no JAX-RS binding
+  annotation is present. Path params default to required (non-null); query,
+  header, and cookie params default to optional (nullable) unless
+  `@Parameter(required = true)`, a `@NotNull`, or a non-null Kotlin type says
+  otherwise.
+- **Request body** is the swagger `@RequestBody`-annotated parameter (its
+  `@Content` schema wins when declared), or the lone JAX-RS entity parameter —
+  the method argument with no binding/injected (`@Context`, `@BeanParam`, …)
+  annotation.
+- **Responses** are read by the same code path as annotated Spring controllers:
+  swagger `@ApiResponses` / `@ApiResponse` produce one Wirespec response per
+  declared status, falling back to the method signature otherwise. See
+  [Multiple responses](#multiple-responses).
+- **Operation name** is the swagger `@Operation(operationId = …)` when present
+  (PascalCased), else the method name. `@Operation(hidden = true)` methods are
+  skipped.
+
+```kotlin
+@Path("/users")
+class UserResource {
+    @GET
+    @Operation(operationId = "listUsers")
+    fun list(@QueryParam("active") active: Boolean?): List<UserDto> = …
+
+    @GET
+    @Path("/{id}")
+    @ApiResponses(
+        ApiResponse(responseCode = "200"),
+        ApiResponse(
+            responseCode = "404",
+            content = [Content(schema = Schema(implementation = ErrorDto::class))],
+        ),
+    )
+    fun getOne(@PathParam("id") id: String): UserDto = …
+}
+```
+
+JAX-RS annotations are read reflectively by fully-qualified name, so — like the
+messaging scanners — the extractor needs no JAX-RS API on its own classpath and
+cleanly no-ops on projects that don't use JAX-RS. Resources are emitted to a
+`<ResourceName>.ws` file, the same convention used for controllers.
+
+The Spring and JAX-RS/OpenAPI paths run independently and can be toggled via
+`extractSpring` / `extractOpenApi` (both default `true`) — set one to `false` to
+extract only the other. See the [Maven](#usage-maven) and [Gradle](#usage-gradle)
+configuration above.
 
 ### Kafka extraction
 

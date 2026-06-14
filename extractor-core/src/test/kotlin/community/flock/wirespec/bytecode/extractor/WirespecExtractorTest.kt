@@ -79,6 +79,21 @@ class WirespecExtractorTest {
     }
 
     @Test
+    fun `extractSpring=false skips Spring controllers`(@TempDir tmp: Path) {
+        val out = File(tmp.toFile(), "ws").apply { mkdirs() }
+        val result = WirespecExtractor.extract(
+            ExtractConfig(
+                classesDirectories = listOf(thisModuleClassesDir()),
+                runtimeClasspath = emptyList(),
+                outputDirectory = out,
+                basePackage = "community.flock.wirespec.bytecode.extractor.fixtures",
+                extractSpring = false,
+            )
+        )
+        result.filesWritten.map { it.name }.contains("HelloController.ws") shouldBe false
+    }
+
+    @Test
     fun `extract throws WirespecExtractorException when classes directory is missing`(@TempDir tmp: Path) {
         val missing = File(tmp.toFile(), "does-not-exist")
         val out = File(tmp.toFile(), "ws").apply { mkdirs() }

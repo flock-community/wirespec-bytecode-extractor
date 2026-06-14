@@ -15,6 +15,7 @@ spring-integration = "6.2.7"
 jackson = "2.18.1"
 jakarta-validation = "3.1.0"
 jakarta-jms = "3.1.0"
+jakarta-ws-rs = "3.1.0"
 swagger-annotations = "2.2.28"
 reactor = "3.7.0"
 jspecify = "1.0.0"
@@ -55,6 +56,7 @@ spring-rabbit = { module = "org.springframework.amqp:spring-rabbit", version.ref
 spring-pulsar = { module = "org.springframework.pulsar:spring-pulsar", version.ref = "spring-pulsar" }
 spring-integration-core = { module = "org.springframework.integration:spring-integration-core", version.ref = "spring-integration" }
 jakarta-jms-api = { module = "jakarta.jms:jakarta.jms-api", version.ref = "jakarta-jms" }
+jakarta-ws-rs-api = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "jakarta-ws-rs" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version.ref = "swagger-annotations" }

@@ -61,6 +61,13 @@ dependencies {
     // spring-jms declares jakarta.jms-api as optional, so it must be added
     // explicitly for tests that reference jakarta.jms.* types directly.
     testImplementation(libs.jakarta.jms.api)
+    // JAX-RS annotations are referenced ONLY from test code (real @Path / @GET /
+    // @QueryParam types for the JAX-RS resource fixtures). Like Spring Kafka, they
+    // are deliberately not on the main classpath: the JAX-RS scanner reads
+    // annotations reflectively by FQN (supporting both jakarta.ws.rs and the
+    // legacy javax.ws.rs namespaces), so extraction cleanly no-ops in projects
+    // that don't use JAX-RS.
+    testImplementation(libs.jakarta.ws.rs.api)
 }
 
 tasks.test {

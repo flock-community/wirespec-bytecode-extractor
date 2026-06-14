@@ -1,6 +1,7 @@
 // src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/ApiResponseExtractor.kt
 package community.flock.wirespec.bytecode.extractor.extract
 
+import community.flock.wirespec.bytecode.extractor.extract.jaxrs.SwaggerContent
 import community.flock.wirespec.bytecode.extractor.model.Endpoint
 import community.flock.wirespec.bytecode.extractor.model.WireType
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -73,17 +74,6 @@ class ApiResponseExtractor(
      * the body is a list; otherwise `schema.implementation` is used directly. `Void.class`
      * is treated as "no schema declared".
      */
-    private fun bodyFromContent(ann: ApiResponse): WireType? {
-        val content = ann.content.firstOrNull() ?: return null
-
-        val arrayImpl: Class<*> = content.array.schema.implementation.java
-        if (arrayImpl != Void::class.java) {
-            return WireType.ListOf(types.extract(arrayImpl))
-        }
-        val impl: Class<*> = content.schema.implementation.java
-        if (impl != Void::class.java) {
-            return types.extract(impl)
-        }
-        return null
-    }
+    private fun bodyFromContent(ann: ApiResponse): WireType? =
+        SwaggerContent.bodyFromContent(ann.content, types)
 }
