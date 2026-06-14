@@ -1,6 +1,6 @@
 plugins {
     java
-    id("community.flock.wirespec.spring.extractor") version "@project.version@"
+    id("community.flock.wirespec.bytecode.extractor") version "@project.version@"
 }
 
 java {

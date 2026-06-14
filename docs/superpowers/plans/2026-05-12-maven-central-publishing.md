@@ -166,9 +166,9 @@ subprojects {
         apply(plugin = "com.vanniktech.maven.publish")
 
         val publishedArtifactId = when (name) {
-            "extractor-core"          -> "wirespec-spring-extractor-core"
-            "extractor-maven-plugin"  -> "wirespec-spring-extractor-maven-plugin"
-            "extractor-gradle-plugin" -> "wirespec-spring-extractor-gradle-plugin"
+            "extractor-core"          -> "wirespec-bytecode-extractor-core"
+            "extractor-maven-plugin"  -> "wirespec-bytecode-extractor-maven-plugin"
+            "extractor-gradle-plugin" -> "wirespec-bytecode-extractor-gradle-plugin"
             else                      -> error("unreachable: $name")
         }
         val isMavenPlugin = name == "extractor-maven-plugin"
@@ -186,7 +186,7 @@ subprojects {
             pom {
                 name.set(publishedArtifactId)
                 description.set(provider { project.description ?: publishedArtifactId })
-                url.set("https://github.com/flock-community/wirespec-spring-extractor")
+                url.set("https://github.com/flock-community/wirespec-bytecode-extractor")
                 if (isMavenPlugin) {
                     packaging = "maven-plugin"
                 }
@@ -206,9 +206,9 @@ subprojects {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/flock-community/wirespec-spring-extractor.git")
-                    developerConnection.set("scm:git:ssh://github.com:flock-community/wirespec-spring-extractor.git")
-                    url.set("https://github.com/flock-community/wirespec-spring-extractor")
+                    connection.set("scm:git:git://github.com/flock-community/wirespec-bytecode-extractor.git")
+                    developerConnection.set("scm:git:ssh://github.com:flock-community/wirespec-bytecode-extractor.git")
+                    url.set("https://github.com/flock-community/wirespec-bytecode-extractor")
                 }
             }
         }
@@ -225,9 +225,9 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "wirespec-spring-extractor-core"
+            artifactId = "wirespec-bytecode-extractor-core"
             pom {
-                name.set("Wirespec Spring Extractor Core")
+                name.set("Wirespec Bytecode Extractor Core")
                 description.set(project.description)
             }
         }
@@ -256,9 +256,9 @@ publishing {
         // descriptive Maven coordinate).
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "wirespec-spring-extractor-maven-plugin"
+            artifactId = "wirespec-bytecode-extractor-maven-plugin"
             pom {
-                name.set("Wirespec Spring Extractor Maven Plugin")
+                name.set("Wirespec Bytecode Extractor Maven Plugin")
                 description.set(project.description)
                 packaging = "maven-plugin"
             }
@@ -283,14 +283,14 @@ Edit `extractor-gradle-plugin/build.gradle.kts`. Replace this exact block:
 ```kotlin
 // Configure the auto-generated `pluginMaven` publication (jar) + `<id>PluginMarkerMaven`
 // (marker) created by java-gradle-plugin. We override the jar's artifactId so the
-// Maven coordinate matches the descriptive `wirespec-spring-extractor-gradle-plugin`
+// Maven coordinate matches the descriptive `wirespec-bytecode-extractor-gradle-plugin`
 // rather than the module name.
 publishing {
     publications.withType<MavenPublication>().configureEach {
         if (name == "pluginMaven") {
-            artifactId = "wirespec-spring-extractor-gradle-plugin"
+            artifactId = "wirespec-bytecode-extractor-gradle-plugin"
             pom {
-                name.set("Wirespec Spring Extractor Gradle Plugin")
+                name.set("Wirespec Bytecode Extractor Gradle Plugin")
                 description.set(project.description)
             }
         }
@@ -333,16 +333,16 @@ Run: `./gradlew :extractor-core:generatePomFileForMavenPublication -q && cat ext
 
 Expected: the output XML contains all of these substrings (you can grep them):
 
-- `<url>https://github.com/flock-community/wirespec-spring-extractor</url>`
+- `<url>https://github.com/flock-community/wirespec-bytecode-extractor</url>`
 - `<name>The Apache License, Version 2.0</name>`
 - `<id>wilmveel</id>`
-- `<connection>scm:git:git://github.com/flock-community/wirespec-spring-extractor.git</connection>`
-- `<artifactId>wirespec-spring-extractor-core</artifactId>`
+- `<connection>scm:git:git://github.com/flock-community/wirespec-bytecode-extractor.git</connection>`
+- `<artifactId>wirespec-bytecode-extractor-core</artifactId>`
 
 One-shot grep:
 
 ```bash
-grep -c -E "wirespec-spring-extractor-core|Apache License, Version 2.0|wilmveel|flock-community/wirespec-spring-extractor" \
+grep -c -E "wirespec-bytecode-extractor-core|Apache License, Version 2.0|wilmveel|flock-community/wirespec-bytecode-extractor" \
   extractor-core/build/publications/maven/pom-default.xml
 ```
 
@@ -352,7 +352,7 @@ Repeat for the plugin and additionally check `packaging`:
 
 ```bash
 ./gradlew :extractor-maven-plugin:generatePomFileForMavenPublication -q
-grep -E "<packaging>maven-plugin</packaging>|<artifactId>wirespec-spring-extractor-maven-plugin</artifactId>" \
+grep -E "<packaging>maven-plugin</packaging>|<artifactId>wirespec-bytecode-extractor-maven-plugin</artifactId>" \
   extractor-maven-plugin/build/publications/maven/pom-default.xml
 ```
 
@@ -362,11 +362,11 @@ Repeat for the Gradle plugin (different publication name — `pluginMaven`, gene
 
 ```bash
 ./gradlew :extractor-gradle-plugin:generatePomFileForPluginMavenPublication -q
-grep -c -E "wirespec-spring-extractor-gradle-plugin|Apache License, Version 2.0|wilmveel|flock-community/wirespec-spring-extractor" \
+grep -c -E "wirespec-bytecode-extractor-gradle-plugin|Apache License, Version 2.0|wilmveel|flock-community/wirespec-bytecode-extractor" \
   extractor-gradle-plugin/build/publications/pluginMaven/pom-default.xml
 ```
 
-Expected: a number `>= 4`. If the artifactId is missing or shows `extractor-gradle-plugin` instead of `wirespec-spring-extractor-gradle-plugin`, vanniktech's `coordinates()` didn't apply — investigate.
+Expected: a number `>= 4`. If the artifactId is missing or shows `extractor-gradle-plugin` instead of `wirespec-bytecode-extractor-gradle-plugin`, vanniktech's `coordinates()` didn't apply — investigate.
 
 - [ ] **Step 6: Run the full build to confirm nothing else broke**
 
@@ -584,7 +584,7 @@ Expected: `BUILD SUCCESSFUL`. This is the same check Task 5's CI workflow will r
 
 These steps need real Central Portal / GitHub Settings access and are intentionally not automated:
 
-1. Verify the `community.flock.wirespec.spring` namespace is claimed on central.sonatype.com.
+1. Verify the `community.flock.wirespec.bytecode` namespace is claimed on central.sonatype.com.
 2. Generate a Central Portal user token (Account → Generate User Token) and store the two values as repo secrets `SONATYPE_USERNAME` and `SONATYPE_PASSWORD`.
 3. Generate a GPG keypair (or reuse an existing one) and upload the public key with `gpg --send-keys --keyserver keys.openpgp.org <keyid>`.
 4. Store the ASCII-armored private key (`gpg --export-secret-keys --armor <keyid>`) as repo secret `GPG_PRIVATE_KEY`, and its passphrase as `GPG_PASSPHRASE`.

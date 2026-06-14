@@ -1,6 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("community.flock.wirespec.spring.extractor") version "@project.version@"
+    id("community.flock.wirespec.bytecode.extractor") version "@project.version@"
 }
 
 dependencies {

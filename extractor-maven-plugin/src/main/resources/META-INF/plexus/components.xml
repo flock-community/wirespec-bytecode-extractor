@@ -9,8 +9,8 @@
     <components>
         <component>
             <role>org.apache.maven.AbstractMavenLifecycleParticipant</role>
-            <role-hint>wirespec-spring-extractor</role-hint>
-            <implementation>community.flock.wirespec.spring.extractor.maven.WirespecLifecycleParticipant</implementation>
+            <role-hint>wirespec-bytecode-extractor</role-hint>
+            <implementation>community.flock.wirespec.bytecode.extractor.maven.WirespecLifecycleParticipant</implementation>
         </component>
     </components>
 </component-set>
