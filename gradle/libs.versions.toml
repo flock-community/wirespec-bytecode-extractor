@@ -18,6 +18,7 @@ jakarta-jms = "3.1.0"
 jakarta-ws-rs = "3.1.0"
 swagger-annotations = "2.2.28"
 reactor = "3.7.0"
+ktor = "3.0.3"
 jspecify = "1.0.0"
 junit = "5.11.3"
 kotest = "5.9.1"
@@ -66,6 +67,12 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 kotest-assertions = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+# Ktor server + client are referenced ONLY from test code (real routing /
+# request DSL for the scanner & walker tests). Like Spring Kafka and JAX-RS,
+# they are deliberately not on the main classpath: the Ktor walkers read
+# bytecode by FQN, so extraction cleanly no-ops on projects that don't use Ktor.
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

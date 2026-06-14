@@ -24,9 +24,10 @@ auto-binds to `process-classes`:
         <output>${project.build.directory}/wirespec</output>
         <!-- optional — only scan classes under this package -->
         <basePackage>com.acme.api</basePackage>
-        <!-- optional — both default to true. Disable a path to extract only the other. -->
+        <!-- optional — all default to true. Disable a path to extract only the others. -->
         <extractSpring>true</extractSpring>
         <extractOpenApi>true</extractOpenApi>
+        <extractKtor>true</extractKtor>
       </configuration>
     </plugin>
   </plugins>
@@ -88,9 +89,10 @@ wirespecExtractor {
     // optional — only scan classes under this package
     basePackage.set("com.acme.api")
 
-    // optional — both default to true. Disable a path to extract only the other.
+    // optional — all default to true. Disable a path to extract only the others.
     // extractSpring.set(true)    // Spring MVC controllers, DSL routes, messaging
     // extractOpenApi.set(true)   // JAX-RS resources + swagger annotations
+    // extractKtor.set(true)      // Ktor server routing + client calls
 }
 ```
 
@@ -165,6 +167,9 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
   [JAX-RS resources](#jax-rs-resources-swagger-driven).
 - Spring Kafka listeners and producers — emitted as Wirespec
   `channel` definitions. See [Kafka extraction](#kafka-extraction).
+- Ktor server routing trees (`routing { route("/users") { get { … } } }`) and
+  Ktor client request calls (`client.post("/users") { setBody(dto) }.body()`).
+  See [Ktor extraction](#ktor-extraction-server--client).
 
 ### Generic types
 
@@ -398,6 +403,77 @@ no-ops in projects that don't use it.
 **Out of scope (v1):** `@SendTo` on listener return values; producers
 passing `ProducerRecord<K, V>` or `Message<?>` to `send(...)`; keys,
 headers, consumer groups, and topic-to-channel name resolution.
+
+### Ktor extraction (server + client)
+
+Alongside the Spring/JAX-RS paths, the extractor discovers **Ktor** endpoints —
+both the server routing tree and the client request DSL. Like the Spring
+functional DSL, routes are found by **static bytecode inspection**: no Ktor
+application is booted and no DSL code runs at extract time. Ktor is read entirely
+by fully-qualified name, so it needs no Ktor API on the extractor's classpath and
+cleanly no-ops on projects that don't use Ktor.
+
+**Server.** Any class whose bytecode builds a routing tree
+(`io.ktor.server.routing` — `routing { }`, `route(...)`, `get`/`post`/…) is
+treated as a virtual controller; its simple class name becomes the `<Name>.ws`
+file (a top-level `fun Application.module()` lands in its `…Kt` file facade).
+
+- HTTP-method builders: `get`, `post`, `put`, `patch`, `delete`, `head`,
+  `options`, with the path taken from `route("/prefix") { }` nesting and/or an
+  inline `get("/path") { }` argument. Ktor path parameters (`{id}`, `{id?}`,
+  `{id...}`) become Wirespec path variables.
+- Request body: recovered from `call.receive<T>()`.
+- Responses: `call.respond(value)` yields a `200` with the value's type;
+  `call.respond(HttpStatusCode.Created, value)` and `call.respond(status)` use
+  the declared status (`201`, `204`, …). Multiple `respond` calls in one handler
+  become multiple responses.
+- Endpoints are named from method + path (`GET /users/{id}` → `GetUsersById`)
+  since the handler lambda is anonymous.
+
+```kotlin
+fun Application.userRoutes() {
+    routing {
+        route("/users") {
+            get { call.respond(userService.all()) }
+            post {
+                val dto = call.receive<UserDto>()
+                call.respond(HttpStatusCode.Created, userService.create(dto))
+            }
+            get("/{id}") { call.respond(userService.find(call.parameters["id"]!!)) }
+        }
+    }
+}
+```
+
+**Client.** Any class that issues `HttpClient` requests is emitted to a
+`<Client>.ws` file, with one endpoint per calling method
+(`suspend fun listUsers()` → `ListUsers`).
+
+- HTTP verb from `client.get/post/put/patch/delete/head/options(...)`.
+- URL from the request's literal path string.
+- Request body from `setBody(value)`; response body from `.body<T>()`.
+
+```kotlin
+class UserClient(private val client: HttpClient) {
+    suspend fun listUsers(): List<UserDto> = client.get("/users").body()
+    suspend fun createUser(dto: UserDto): UserDto =
+        client.post("/users") { setBody(dto) }.body()
+}
+```
+
+**Limitations (v1):**
+
+- Routing config lambdas are followed when the Kotlin compiler emits them as
+  `invokedynamic` (the default since Kotlin 2.0); handler bodies in DSL position
+  (`get { … }`) are read as generated suspend-lambda classes.
+- Query / header / cookie parameters (`call.request.queryParameters[...]`) are
+  not extracted — only path, method, request body, and responses.
+- Response/request bodies are recovered from the reified `receive` / `respond` /
+  `setBody` / `body` type arguments; bodies passed via non-reified overloads are
+  not read.
+- Client URLs are read from the literal path string. Interpolated paths
+  (`"/users/$id"`) are only partially recovered (the static portion), so dynamic
+  segments may be missing.
 
 ### Known limitations (v1)
 
