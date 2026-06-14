@@ -10,6 +10,11 @@ import community.flock.wirespec.bytecode.extractor.extract.dsl.DslBytecodeWalker
 import community.flock.wirespec.bytecode.extractor.extract.dsl.DslEndpointExtractor
 import community.flock.wirespec.bytecode.extractor.extract.dsl.DslRouteScanner
 import community.flock.wirespec.bytecode.extractor.extract.jaxrs.JaxRsEndpointExtractor
+import community.flock.wirespec.bytecode.extractor.extract.ktor.KtorClientExtractor
+import community.flock.wirespec.bytecode.extractor.extract.ktor.KtorClientScanner
+import community.flock.wirespec.bytecode.extractor.extract.ktor.KtorEndpointExtractor
+import community.flock.wirespec.bytecode.extractor.extract.ktor.KtorRoutingScanner
+import community.flock.wirespec.bytecode.extractor.extract.ktor.KtorRoutingWalker
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingBroker
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingChannelExtractor
 import community.flock.wirespec.bytecode.extractor.extract.messaging.MessagingListenerScanner
@@ -83,7 +88,27 @@ object WirespecExtractor {
                 }
             } else emptyList()
 
-            val collisions = detectControllerCollisions(controllers + dslConfigs + jaxrsResources)
+            val ktorRoutingConfigs = if (config.extractKtor) {
+                KtorRoutingScanner.scan(
+                    loader, scanPackages, effectiveBasePackage,
+                    onWarn = { msg -> config.log.warn(msg) },
+                ).also {
+                    if (it.isNotEmpty()) config.log.info("Found ${it.size} Ktor routing configuration(s)")
+                }
+            } else emptyList()
+
+            val ktorClients = if (config.extractKtor) {
+                KtorClientScanner.scan(
+                    loader, scanPackages, effectiveBasePackage,
+                    onWarn = { msg -> config.log.warn(msg) },
+                ).also {
+                    if (it.isNotEmpty()) config.log.info("Found ${it.size} Ktor client(s)")
+                }
+            } else emptyList()
+
+            val collisions = detectControllerCollisions(
+                controllers + dslConfigs + jaxrsResources + ktorRoutingConfigs + ktorClients
+            )
             if (collisions.isNotEmpty()) {
                 val msg = collisions.entries.joinToString("; ") { (name, classes) ->
                     "$name in [${classes.joinToString(", ")}]"
@@ -95,6 +120,8 @@ object WirespecExtractor {
             val endpoints = EndpointExtractor(types, onWarn = { msg -> config.log.warn(msg) })
             val dslEndpoints = DslEndpointExtractor(types, loader, onWarn = { msg -> config.log.warn(msg) })
             val jaxrsEndpoints = JaxRsEndpointExtractor(types, onWarn = { msg -> config.log.warn(msg) })
+            val ktorEndpoints = KtorEndpointExtractor(types, loader, onWarn = { msg -> config.log.warn(msg) })
+            val ktorClientEndpoints = KtorClientExtractor(types, loader, onWarn = { msg -> config.log.warn(msg) })
             val builder = WirespecAstBuilder()
 
             val byController = controllers.associate { c ->
@@ -138,6 +165,39 @@ object WirespecExtractor {
                 }
                 if (eps.isNotEmpty()) {
                     val key = resource.simpleName
+                    byController[key] = byController[key].orEmpty() + eps.map { it as Definition }
+                }
+            }
+
+            // -- Ktor server routing (routing { } trees discovered by static bytecode walk) ----
+            for (cfg in ktorRoutingConfigs) {
+                val eps = try {
+                    val routes = KtorRoutingWalker.walk(cfg)
+                    ktorEndpoints.extract(cfg, routes).map(builder::toEndpoint)
+                } catch (e: WirespecExtractorException) {
+                    throw e
+                } catch (t: Throwable) {
+                    config.log.warn("Skipping Ktor routing ${cfg.name}: ${t.message}")
+                    emptyList()
+                }
+                if (eps.isNotEmpty()) {
+                    val key = cfg.simpleName
+                    byController[key] = byController[key].orEmpty() + eps.map { it as Definition }
+                }
+            }
+
+            // -- Ktor client calls (HttpClient request DSL discovered by static bytecode walk) ----
+            for (clientClass in ktorClients) {
+                val eps = try {
+                    ktorClientEndpoints.extract(clientClass).map(builder::toEndpoint)
+                } catch (e: WirespecExtractorException) {
+                    throw e
+                } catch (t: Throwable) {
+                    config.log.warn("Skipping Ktor client ${clientClass.name}: ${t.message}")
+                    emptyList()
+                }
+                if (eps.isNotEmpty()) {
+                    val key = clientClass.simpleName
                     byController[key] = byController[key].orEmpty() + eps.map { it as Definition }
                 }
             }

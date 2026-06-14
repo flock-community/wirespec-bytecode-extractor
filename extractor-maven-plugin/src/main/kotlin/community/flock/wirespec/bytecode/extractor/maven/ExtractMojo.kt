@@ -34,6 +34,10 @@ class ExtractMojo : AbstractMojo() {
     @Parameter(property = "wirespec.extractOpenApi", defaultValue = "true")
     var extractOpenApi: Boolean = true
 
+    /** Extract Ktor server routing trees and Ktor client request calls. */
+    @Parameter(property = "wirespec.extractKtor", defaultValue = "true")
+    var extractKtor: Boolean = true
+
     @Parameter(defaultValue = "\${project}", readonly = true, required = true)
     lateinit var project: MavenProject
 
@@ -55,6 +59,7 @@ class ExtractMojo : AbstractMojo() {
                     basePackage = basePackage,
                     extractSpring = extractSpring,
                     extractOpenApi = extractOpenApi,
+                    extractKtor = extractKtor,
                     log = MavenExtractLog(log),
                 )
             )

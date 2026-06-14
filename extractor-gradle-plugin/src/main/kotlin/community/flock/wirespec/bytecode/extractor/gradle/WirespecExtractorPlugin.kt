@@ -32,6 +32,7 @@ class WirespecExtractorPlugin : Plugin<Project> {
             // basePackage left without a convention → null/unset means scan everything.
             extractSpring.convention(true)
             extractOpenApi.convention(true)
+            extractKtor.convention(true)
         }
 
         project.plugins.withType(JavaPlugin::class.java) {
@@ -46,6 +47,7 @@ class WirespecExtractorPlugin : Plugin<Project> {
                 t.basePackage.convention(ext.basePackage)
                 t.extractSpring.convention(ext.extractSpring)
                 t.extractOpenApi.convention(ext.extractOpenApi)
+                t.extractKtor.convention(ext.extractKtor)
                 // Make sure compile runs first — classes producers wire the dependency.
                 t.dependsOn(main.output.classesDirs)
             }

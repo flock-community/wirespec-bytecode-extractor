@@ -68,6 +68,12 @@ dependencies {
     // legacy javax.ws.rs namespaces), so extraction cleanly no-ops in projects
     // that don't use JAX-RS.
     testImplementation(libs.jakarta.ws.rs.api)
+    // Ktor server + client are referenced ONLY from test code (real routing /
+    // request DSL fixtures for the Ktor walkers). They are deliberately not on
+    // the main classpath: the Ktor walkers read bytecode by FQN, so extraction
+    // cleanly no-ops on projects that don't use Ktor.
+    testImplementation(libs.ktor.server.core)
+    testImplementation(libs.ktor.client.core)
 }
 
 tasks.test {
