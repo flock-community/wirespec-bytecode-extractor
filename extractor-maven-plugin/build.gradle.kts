@@ -24,7 +24,7 @@ plugins {
 }
 
 description = "Extracts Spring Boot endpoints into Wirespec .ws files."
-base.archivesName.set("wirespec-bytecode-extractor-maven-plugin")
+base.archivesName.set("wirespec-extractor-maven-plugin")
 
 kotlin {
     jvmToolchain(21)
@@ -37,12 +37,12 @@ kotlin {
 mavenPlugin {
     // Coordinates of the published Maven plugin artifact. The directory name
     // is `plugin/`, but the Maven artifactId is the full descriptive name.
-    artifactId.set("wirespec-bytecode-extractor-maven-plugin")
-    name.set("Wirespec Bytecode Extractor Maven Plugin")
+    artifactId.set("wirespec-extractor-maven-plugin")
+    name.set("Wirespec Extractor Maven Plugin")
     // The Maven goal prefix: invoked as `mvn wirespec:extract` (or `wirespec:help`).
     goalPrefix.set("wirespec")
     // Generates the `wirespec:help` mojo (HelpMojo class).
-    helpMojoPackage.set("community.flock.wirespec.bytecode.wirespec_bytecode_extractor_maven_plugin")
+    helpMojoPackage.set("community.flock.wirespec.extractor.wirespec_bytecode_extractor_maven_plugin")
 }
 
 tasks.named<GenerateMavenPluginDescriptorTask>("generateMavenPluginDescriptor") {
@@ -118,14 +118,14 @@ val writePomProperties = tasks.register("writePomProperties") {
     val version = project.version.toString()
     val outputFile = pomPropertiesFile
     inputs.property("groupId", groupId)
-    inputs.property("artifactId", "wirespec-bytecode-extractor-maven-plugin")
+    inputs.property("artifactId", "wirespec-extractor-maven-plugin")
     inputs.property("version", version)
     outputs.file(outputFile)
     doLast {
         outputFile.get().asFile.apply {
             parentFile.mkdirs()
             writeText(
-                "artifactId=wirespec-bytecode-extractor-maven-plugin\n" +
+                "artifactId=wirespec-extractor-maven-plugin\n" +
                     "groupId=$groupId\n" +
                     "version=$version\n",
             )
@@ -134,7 +134,7 @@ val writePomProperties = tasks.register("writePomProperties") {
 }
 
 tasks.named<Jar>("jar") {
-    val embeddedMetaDir = "META-INF/maven/${project.group}/wirespec-bytecode-extractor-maven-plugin"
+    val embeddedMetaDir = "META-INF/maven/${project.group}/wirespec-extractor-maven-plugin"
     into(embeddedMetaDir) {
         from(tasks.named("generatePomFileForMavenPublication"))
         rename { "pom.xml" }

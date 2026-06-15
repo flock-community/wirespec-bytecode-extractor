@@ -1,4 +1,4 @@
-rootProject.name = "wirespec-bytecode-extractor"
+rootProject.name = "wirespec-extractor"
 
 pluginManagement {
     repositories {

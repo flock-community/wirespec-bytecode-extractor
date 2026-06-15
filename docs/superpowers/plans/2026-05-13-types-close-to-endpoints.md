@@ -16,8 +16,8 @@
 
 **Create**
 
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt`
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnershipTest.kt`
 - `integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt`
 - `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java`
 - `integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt`
@@ -25,11 +25,11 @@
 
 **Modify**
 
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit/Emitter.kt` (rename parameter)
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit/EmitterTest.kt` (rename usages)
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt` (wire `TypeOwnership.partition`)
-- `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`
-- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit/Emitter.kt` (rename parameter)
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/emit/EmitterTest.kt` (rename usages)
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt` (wire `TypeOwnership.partition`)
+- `integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/FixtureBuildTest.kt`
+- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt`
 - `README.md` (Output layout section)
 
 ---
@@ -40,15 +40,15 @@ Pure functions that yield the `Reference.Custom` names reachable from a given AS
 
 **Files:**
 
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt`
-- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt`
+- Test: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnershipTest.kt`
 
 - [ ] **Step 1: Write a failing test for the partition API surface (compile-only smoke test)**
 
 Create `TypeOwnershipTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.ownership
+package community.flock.wirespec.extractor.ownership
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
@@ -69,13 +69,13 @@ class TypeOwnershipTest {
 
 - [ ] **Step 2: Run it to verify it fails (unresolved reference)**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest' -i`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.extractor.ownership.TypeOwnershipTest' -i`
 Expected: compilation fails — `Unresolved reference: TypeOwnership` (or similar).
 
 - [ ] **Step 3: Create `TypeOwnership.kt` with the helpers and a stub `partition`**
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.ownership
+package community.flock.wirespec.extractor.ownership
 
 import community.flock.wirespec.compiler.core.parse.ast.Definition
 import community.flock.wirespec.compiler.core.parse.ast.Endpoint as WsEndpoint
@@ -151,7 +151,7 @@ internal object TypeOwnership {
 
 - [ ] **Step 4: Run the test to verify it passes**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest' -i`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.extractor.ownership.TypeOwnershipTest' -i`
 Expected: `empty input yields empty partition` PASSES (the stub returns the inputs unchanged, which matches empty/empty).
 
 - [ ] **Step 5: Add unit tests covering the helpers via `partition` semantics that the helpers enable (still using the stub) — and verify the stub is wrong**
@@ -222,14 +222,14 @@ fun `single controller owning one type — type moves into controller`() {
 }
 ```
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest' -i`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.extractor.ownership.TypeOwnershipTest' -i`
 Expected: the new test FAILS — the stub still returns `allTypes` as `shared`, so `result.shared` is `[UserDto]` and `result.perController["UserController"]` is `[ep]`.
 
 - [ ] **Step 6: Commit (red tests + helpers in place; partition logic still stubbed)**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnershipTest.kt
 git commit -m "feat(ownership): scaffold TypeOwnership with reference-walk helpers"
 ```
 
@@ -241,8 +241,8 @@ Replace the stub with the real partition logic and drive it red-green with the f
 
 **Files:**
 
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnershipTest.kt`
 
 - [ ] **Step 1: Implement the real `partition`**
 
@@ -312,7 +312,7 @@ fun partition(
 
 - [ ] **Step 2: Run the existing failing test, verify it now passes**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest.single controller owning one type — type moves into controller' -i`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.extractor.ownership.TypeOwnershipTest.single controller owning one type — type moves into controller' -i`
 Expected: PASS.
 
 - [ ] **Step 3: Add remaining cases — write all red, run, then they should pass since the logic is in place**
@@ -491,14 +491,14 @@ fun `owned types are appended in registration order, not in reference order`() {
 
 - [ ] **Step 4: Run all `TypeOwnershipTest` tests, verify all pass**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.ownership.TypeOwnershipTest' -i`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.extractor.ownership.TypeOwnershipTest' -i`
 Expected: all 10 tests PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnershipTest.kt
 git commit -m "feat(ownership): partition definitions into per-controller and shared buckets"
 ```
 
@@ -510,8 +510,8 @@ git commit -m "feat(ownership): partition definitions into per-controller and sh
 
 **Files:**
 
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit/Emitter.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit/EmitterTest.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit/Emitter.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/emit/EmitterTest.kt`
 
 - [ ] **Step 1: Update the signature and the one local reference**
 
@@ -576,14 +576,14 @@ The two positional calls inside `deletes existing ws files but leaves other file
 
 - [ ] **Step 3: Build and run EmitterTest**
 
-Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.bytecode.extractor.emit.EmitterTest' -i`
+Run: `./gradlew :extractor-core:test --tests 'community.flock.wirespec.extractor.emit.EmitterTest' -i`
 Expected: all tests PASS.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit/Emitter.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit/EmitterTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit/Emitter.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/emit/EmitterTest.kt
 git commit -m "refactor(emitter): rename controllerEndpoints to controllerDefinitions"
 ```
 
@@ -595,14 +595,14 @@ Call `TypeOwnership.partition` between extraction and emission. Existing unit te
 
 **Files:**
 
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt`
 
 - [ ] **Step 1: Add the import**
 
 At the top of `WirespecExtractor.kt`, alongside the existing imports, add:
 
 ```kotlin
-import community.flock.wirespec.bytecode.extractor.ownership.TypeOwnership
+import community.flock.wirespec.extractor.ownership.TypeOwnership
 ```
 
 - [ ] **Step 2: Replace the extraction-to-emission block**
@@ -699,7 +699,7 @@ If `WirespecExtractorTest.extract writes ws files for known controllers and retu
 - [ ] **Step 4: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt
 git commit -m "feat(extractor): place types close to their controllers via TypeOwnership"
 ```
 
@@ -713,7 +713,7 @@ Add a second controller in both Maven fixtures that references `Role` directly. 
 
 - Create: `integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt`
 - Create: `integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java`
-- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`
+- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/FixtureBuildTest.kt`
 
 - [ ] **Step 1: Add the Kotlin fixture's `AdminController.kt`**
 
@@ -902,7 +902,7 @@ Expected: BUILD SUCCESSFUL, both `basic-kotlin-app` and `basic-spring-app` dynam
 ```bash
 git add integration-tests-maven/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt \
         integration-tests-maven/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java \
-        integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt
+        integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/FixtureBuildTest.kt
 git commit -m "test(it-maven): add AdminController to verify shared-vs-owned type placement"
 ```
 
@@ -914,7 +914,7 @@ git commit -m "test(it-maven): add AdminController to verify shared-vs-owned typ
 
 - Create: `integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt`
 - Create: `integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt`
 
 - [ ] **Step 1: Add the Kotlin fixture's `AdminController.kt`**
 
@@ -1077,7 +1077,7 @@ Expected: BUILD SUCCESSFUL.
 ```bash
 git add integration-tests-gradle/src/it/basic-kotlin-app/src/main/kotlin/com/acme/api/AdminController.kt \
         integration-tests-gradle/src/it/basic-spring-app/src/main/java/com/acme/api/AdminController.java \
-        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt
+        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt
 git commit -m "test(it-gradle): add AdminController to verify shared-vs-owned type placement"
 ```
 

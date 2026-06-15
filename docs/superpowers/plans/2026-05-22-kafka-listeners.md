@@ -15,30 +15,30 @@
 ## File Structure
 
 **Created:**
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model/Channel.kt` — internal channel model
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt` — discovers `@KafkaListener` and `@KafkaHandler` methods
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelector.kt` — pure function: pick the payload parameter and unwrap wrappers
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScanner.kt` — finds classes with `KafkaTemplate` fields, recovers `V` from signature
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt` — walks methods for `INVOKEVIRTUAL KafkaTemplate.send`
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaChannelExtractor.kt` — orchestrates consumer + producer sites → `model.Channel`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScannerTest.kt`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelectorTest.kt`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScannerTest.kt`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilderChannelTest.kt`
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/model/Channel.kt` — internal channel model
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScanner.kt` — discovers `@KafkaListener` and `@KafkaHandler` methods
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelector.kt` — pure function: pick the payload parameter and unwrap wrappers
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScanner.kt` — finds classes with `KafkaTemplate` fields, recovers `V` from signature
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt` — walks methods for `INVOKEVIRTUAL KafkaTemplate.send`
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaChannelExtractor.kt` — orchestrates consumer + producer sites → `model.Channel`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScannerTest.kt`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelectorTest.kt`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScannerTest.kt`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilderChannelTest.kt`
 - `integration-tests-gradle/src/it/kafka-app/` — full fixture (settings + build + main sources)
 - `integration-tests-maven/src/it/kafka-app/` — Maven mirror of the fixture
-- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt`
+- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt`
 
 **Modified:**
 - `extractor-core/build.gradle.kts` — add `testImplementation("org.springframework.kafka:spring-kafka:3.2.4")` so test code can reference real Spring Kafka annotations/types
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model/Channel.kt` (new — listed above)
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilder.kt` — add `toChannel(model.Channel): WsChannel`
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt` — recognise `WsChannel` in the reachability walk and as an owner of types
-- `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt` — invoke Kafka scanners, merge channels into `byController`
-- `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt` — add a no-Kafka smoke test (existing flow keeps working)
-- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt` — register `kafka-app` verifier
-- `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt` and `DslFixtureVerifiers.kt` (or add `KafkaFixtureVerifier.kt` in the same package) — same registration on the Maven side
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/model/Channel.kt` (new — listed above)
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilder.kt` — add `toChannel(model.Channel): WsChannel`
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt` — recognise `WsChannel` in the reachability walk and as an owner of types
+- `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt` — invoke Kafka scanners, merge channels into `byController`
+- `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/WirespecExtractorTest.kt` — add a no-Kafka smoke test (existing flow keeps working)
+- `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt` — register `kafka-app` verifier
+- `integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/FixtureBuildTest.kt` and `DslFixtureVerifiers.kt` (or add `KafkaFixtureVerifier.kt` in the same package) — same registration on the Maven side
 
 ---
 
@@ -122,21 +122,21 @@ git commit -m "chore(extractor): add spring-kafka as test dependency"
 ## Task 2: Add `model.Channel` and round-trip test
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model/Channel.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilder.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilderChannelTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/model/Channel.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilder.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilderChannelTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilderChannelTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilderChannelTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.ast
+package community.flock.wirespec.extractor.ast
 
 import community.flock.wirespec.compiler.core.parse.ast.Channel as WsChannel
 import community.flock.wirespec.compiler.core.parse.ast.Reference
-import community.flock.wirespec.bytecode.extractor.model.Channel
-import community.flock.wirespec.bytecode.extractor.model.WireType
+import community.flock.wirespec.extractor.model.Channel
+import community.flock.wirespec.extractor.model.WireType
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.junit.jupiter.api.Test
@@ -186,10 +186,10 @@ Expected: COMPILATION FAILURE — `Channel` model and `WirespecAstBuilder.toChan
 
 - [ ] **Step 3: Add `model.Channel`**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model/Channel.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/model/Channel.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.model
+package community.flock.wirespec.extractor.model
 
 /**
  * Internal domain model for a Wirespec channel. Parallel to [Endpoint], but
@@ -209,7 +209,7 @@ data class Channel(
 
 - [ ] **Step 4: Add `WirespecAstBuilder.toChannel`**
 
-Open `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilder.kt`.
+Open `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilder.kt`.
 
 Add this import to the import block (alphabetical):
 
@@ -220,7 +220,7 @@ import community.flock.wirespec.compiler.core.parse.ast.Channel as WsChannel
 Add this import:
 
 ```kotlin
-import community.flock.wirespec.bytecode.extractor.model.Channel
+import community.flock.wirespec.extractor.model.Channel
 ```
 
 Add this method to the `WirespecAstBuilder` class, immediately after `toEndpoint(...)`:
@@ -245,9 +245,9 @@ Expected: 2 tests pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model/Channel.kt \
-        extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilder.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ast/WirespecAstBuilderChannelTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/model/Channel.kt \
+        extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilder.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ast/WirespecAstBuilderChannelTest.kt
 git commit -m "feat(extractor): add Channel model and AST mapping"
 ```
 
@@ -258,8 +258,8 @@ git commit -m "feat(extractor): add Channel model and AST mapping"
 Channels reference payload types. Without this, payload DTOs reachable only from channels won't be assigned to a channel's owning file — they'd be flagged as "no owning controller" and forced into `types.ws`. We want the same single-owner-inlines, multi-owner-floats behaviour as endpoints.
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt`
-- Modify (extend): `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnershipTest.kt` if it exists; otherwise no test changes here — Task 7's integration test exercises the path.
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt`
+- Modify (extend): `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnershipTest.kt` if it exists; otherwise no test changes here — Task 7's integration test exercises the path.
 
 - [ ] **Step 1: Check whether an ownership test exists**
 
@@ -322,7 +322,7 @@ Expected: all existing tests pass (the new channel path is dormant until later t
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt
 git commit -m "feat(extractor): include channels in type-ownership reachability"
 ```
 
@@ -333,15 +333,15 @@ git commit -m "feat(extractor): include channels in type-ownership reachability"
 This is the heart of consumer extraction. Isolated from any scanning so it can be exhaustively unit-tested.
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelector.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelectorTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelector.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelectorTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelectorTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelectorTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -435,10 +435,10 @@ Expected: COMPILATION FAILURE — `KafkaPayloadSelector` does not exist.
 
 - [ ] **Step 3: Implement `KafkaPayloadSelector`**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelector.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelector.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import java.lang.reflect.Method
 import java.lang.reflect.Parameter
@@ -535,8 +535,8 @@ Expected: 8 tests pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelector.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaPayloadSelectorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelector.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaPayloadSelectorTest.kt
 git commit -m "feat(extractor): add Kafka payload selector with wrapper unwrapping"
 ```
 
@@ -547,15 +547,15 @@ git commit -m "feat(extractor): add Kafka payload selector with wrapper unwrappi
 This task only covers method-level `@KafkaListener`. Class-level `@KafkaListener` + `@KafkaHandler` is added later in Task 9, so the verifier here intentionally ignores that shape.
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScannerTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScanner.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScannerTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScannerTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScannerTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -582,7 +582,7 @@ class KafkaListenerScannerTest {
         val loader = javaClass.classLoader
         val sites = KafkaListenerScanner.scan(
             classLoader = loader,
-            scanPackages = listOf("community.flock.wirespec.bytecode.extractor.extract.kafka"),
+            scanPackages = listOf("community.flock.wirespec.extractor.extract.kafka"),
             basePackage = null,
         )
         val ours = sites.filter { it.ownerClass == OrderConsumer::class.java }
@@ -602,10 +602,10 @@ Expected: COMPILATION FAILURE — `KafkaListenerScanner` does not exist.
 
 - [ ] **Step 3: Implement the scanner**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScanner.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import io.github.classgraph.ClassGraph
 import java.lang.reflect.Method
@@ -686,8 +686,8 @@ Expected: 1 test passes.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScannerTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScanner.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScannerTest.kt
 git commit -m "feat(extractor): scan method-level @KafkaListener"
 ```
 
@@ -698,17 +698,17 @@ git commit -m "feat(extractor): scan method-level @KafkaListener"
 Wires `KafkaListenerScanner.Site` → `KafkaPayloadSelector` → `TypeExtractor` → `model.Channel`. Producer integration is added in Task 11.
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaChannelExtractor.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaChannelExtractor.kt`
 
 - [ ] **Step 1: Implement the extractor**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaChannelExtractor.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaChannelExtractor.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
-import community.flock.wirespec.bytecode.extractor.extract.TypeExtractor
-import community.flock.wirespec.bytecode.extractor.model.Channel
+import community.flock.wirespec.extractor.extract.TypeExtractor
+import community.flock.wirespec.extractor.model.Channel
 
 /**
  * Turns Kafka scan results into [Channel] domain values. Payload selection is
@@ -760,7 +760,7 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaChannelExtractor.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaChannelExtractor.kt
 git commit -m "feat(extractor): orchestrate Kafka listener sites into Channels"
 ```
 
@@ -771,23 +771,23 @@ git commit -m "feat(extractor): orchestrate Kafka listener sites into Channels"
 This is the first end-to-end test — actually emitting `channel` lines into a `.ws` file.
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt`
 - Create: `integration-tests-gradle/src/it/kafka-app/settings.gradle.kts`
 - Create: `integration-tests-gradle/src/it/kafka-app/build.gradle.kts`
 - Create: `integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/OrderEvent.kt`
 - Create: `integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/OrderConsumer.kt`
-- Create: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`
+- Create: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt`
 
 - [ ] **Step 1: Wire the consumer pipeline into `WirespecExtractor`**
 
-Open `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`.
+Open `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt`.
 
 Add imports (alphabetical):
 
 ```kotlin
-import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaChannelExtractor
-import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaListenerScanner
+import community.flock.wirespec.extractor.extract.kafka.KafkaChannelExtractor
+import community.flock.wirespec.extractor.extract.kafka.KafkaListenerScanner
 ```
 
 Inside the `ClasspathBuilder.fromUrls(...).use { loader -> ... }` block, just after the existing DSL `for (cfg in dslConfigs) { ... }` loop and the `byControllerFinal` assignment, but BEFORE the `allTypes`/`partition`/`Emitter().write(...)` calls, insert:
@@ -851,7 +851,7 @@ rootProject.name = "kafka-app"
 ```kotlin
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("community.flock.wirespec.bytecode.extractor") version "@project.version@"
+    id("community.flock.wirespec.extractor") version "@project.version@"
 }
 
 dependencies {
@@ -904,10 +904,10 @@ class OrderConsumer {
 
 - [ ] **Step 5: Create the verifier**
 
-`integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt`:
+`integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.it.gradle
+package community.flock.wirespec.extractor.it.gradle
 
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.string.shouldContain
@@ -938,7 +938,7 @@ object KafkaFixtureVerifier {
 
 - [ ] **Step 6: Register the fixture in the build test**
 
-Open `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt`.
+Open `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt`.
 
 Find the `when (fixture.name) { ... }` block in `runFixture`. Add this case (alphabetical order, after `dsl-webflux-app`):
 
@@ -967,10 +967,10 @@ Expected: all tests pass.
 - [ ] **Step 9: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt \
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt \
         integration-tests-gradle/src/it/kafka-app \
-        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt \
-        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/GradleFixtureBuildTest.kt
+        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt \
+        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/GradleFixtureBuildTest.kt
 git commit -m "feat(extractor): emit Wirespec channels for @KafkaListener consumers"
 ```
 
@@ -982,7 +982,7 @@ Tests the unwrap rules end-to-end (`ConsumerRecord`, `Message`, `List` batch, `@
 
 **Files:**
 - Modify: `integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/OrderConsumer.kt`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt`
 
 - [ ] **Step 1: Add the additional listener methods**
 
@@ -1043,7 +1043,7 @@ Expected: PASS. Five channels in the output.
 
 ```bash
 git add integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/OrderConsumer.kt \
-        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt
+        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt
 git commit -m "test(it): cover all @KafkaListener parameter shapes"
 ```
 
@@ -1052,11 +1052,11 @@ git commit -m "test(it): cover all @KafkaListener parameter shapes"
 ## Task 9: Class-level `@KafkaListener` + `@KafkaHandler` support
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScannerTest.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScanner.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScannerTest.kt`
 - Create (fixture): `integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/ShipmentEvent.kt`
 - Create (fixture): `integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/ShipmentRouter.kt`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt`
 
 - [ ] **Step 1: Add the failing scanner test for class-level discovery**
 
@@ -1078,7 +1078,7 @@ Append to `KafkaListenerScannerTest.kt`:
         val loader = javaClass.classLoader
         val sites = KafkaListenerScanner.scan(
             classLoader = loader,
-            scanPackages = listOf("community.flock.wirespec.bytecode.extractor.extract.kafka"),
+            scanPackages = listOf("community.flock.wirespec.extractor.extract.kafka"),
             basePackage = null,
         )
         val ours = sites.filter { it.ownerClass == ShipmentRouter::class.java }
@@ -1189,10 +1189,10 @@ Expected: PASS.
 - [ ] **Step 8: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScanner.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaListenerScannerTest.kt \
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScanner.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaListenerScannerTest.kt \
         integration-tests-gradle/src/it/kafka-app \
-        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt
+        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt
 git commit -m "feat(extractor): support class-level @KafkaListener + @KafkaHandler"
 ```
 
@@ -1201,15 +1201,15 @@ git commit -m "feat(extractor): support class-level @KafkaListener + @KafkaHandl
 ## Task 10: `KafkaProducerScanner` — recover `V` from `KafkaTemplate` field signatures
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScanner.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScannerTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScanner.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScannerTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScannerTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScannerTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -1234,7 +1234,7 @@ class KafkaProducerScannerTest {
     fun `recovers V for typed KafkaTemplate fields`() {
         val sites = KafkaProducerScanner.scan(
             classLoader = javaClass.classLoader,
-            scanPackages = listOf("community.flock.wirespec.bytecode.extractor.extract.kafka"),
+            scanPackages = listOf("community.flock.wirespec.extractor.extract.kafka"),
             basePackage = null,
         )
         val good = sites.filter { it.ownerClass == GoodPublisher::class.java }
@@ -1246,7 +1246,7 @@ class KafkaProducerScannerTest {
     fun `drops raw KafkaTemplate fields`() {
         val sites = KafkaProducerScanner.scan(
             classLoader = javaClass.classLoader,
-            scanPackages = listOf("community.flock.wirespec.bytecode.extractor.extract.kafka"),
+            scanPackages = listOf("community.flock.wirespec.extractor.extract.kafka"),
             basePackage = null,
         )
         sites.none { it.ownerClass == RawPublisher::class.java } shouldBe true
@@ -1264,10 +1264,10 @@ Expected: COMPILATION FAILURE — `KafkaProducerScanner` does not exist.
 
 - [ ] **Step 3: Implement the scanner**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScanner.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScanner.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import io.github.classgraph.ClassGraph
 import java.lang.reflect.ParameterizedType
@@ -1360,8 +1360,8 @@ Expected: 2 tests pass.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScanner.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerScannerTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScanner.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerScannerTest.kt
 git commit -m "feat(extractor): scan KafkaTemplate fields and recover value type"
 ```
 
@@ -1372,15 +1372,15 @@ git commit -m "feat(extractor): scan KafkaTemplate fields and recover value type
 Walks each class's methods looking for `INVOKEVIRTUAL KafkaTemplate.send`. Each call is attributed to the originating `KafkaTemplate` field (matched via the preceding `GETFIELD`) so the bytecode walker can return `(enclosingMethod, valueClass)` per call site.
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt`
 
 - [ ] **Step 1: Write the failing test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -1442,10 +1442,10 @@ Expected: COMPILATION FAILURE — `KafkaProducerBytecodeWalker` doesn't exist.
 
 - [ ] **Step 3: Implement the walker**
 
-Create `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt`:
+Create `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.extract.kafka
+package community.flock.wirespec.extractor.extract.kafka
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
@@ -1549,8 +1549,8 @@ Expected: 1 test passes (3 sites discovered).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalker.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaProducerBytecodeWalkerTest.kt
 git commit -m "feat(extractor): walk bytecode for KafkaTemplate.send call sites"
 ```
 
@@ -1559,10 +1559,10 @@ git commit -m "feat(extractor): walk bytecode for KafkaTemplate.send call sites"
 ## Task 12: Producer orchestration + wiring into `WirespecExtractor` + fixture extension
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaChannelExtractor.kt`
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaChannelExtractor.kt`
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt`
 - Create (fixture): `integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/OrderPublisher.kt`
-- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt`
+- Modify: `integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt`
 
 - [ ] **Step 1: Extend `KafkaChannelExtractor` with producer orchestration**
 
@@ -1594,8 +1594,8 @@ Add this method to `KafkaChannelExtractor`, alongside the existing `fromListener
 Open `WirespecExtractor.kt` and add imports:
 
 ```kotlin
-import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaProducerBytecodeWalker
-import community.flock.wirespec.bytecode.extractor.extract.kafka.KafkaProducerScanner
+import community.flock.wirespec.extractor.extract.kafka.KafkaProducerBytecodeWalker
+import community.flock.wirespec.extractor.extract.kafka.KafkaProducerScanner
 ```
 
 Just after the consumer-channels block added in Task 7 (still BEFORE `byControllerFinal`), insert:
@@ -1700,10 +1700,10 @@ Expected: every test passes.
 - [ ] **Step 8: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract/kafka/KafkaChannelExtractor.kt \
-        extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt \
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract/kafka/KafkaChannelExtractor.kt \
+        extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt \
         integration-tests-gradle/src/it/kafka-app/src/main/kotlin/com/acme/api/OrderPublisher.kt \
-        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/gradle/KafkaFixtureVerifier.kt
+        integration-tests-gradle/src/test/kotlin/community/flock/wirespec/extractor/it/gradle/KafkaFixtureVerifier.kt
 git commit -m "feat(extractor): emit Wirespec channels for KafkaTemplate.send producers"
 ```
 
@@ -1713,8 +1713,8 @@ git commit -m "feat(extractor): emit Wirespec channels for KafkaTemplate.send pr
 
 **Files:**
 - Create: `integration-tests-maven/src/it/kafka-app/` (mirror of the Gradle fixture, Maven layout)
-- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt`
-- Modify (or create alongside): `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/DslFixtureVerifiers.kt` to add a `verifyKafkaApp` entry, OR add a new `KafkaFixtureVerifier.kt` next to it.
+- Modify: `integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/FixtureBuildTest.kt`
+- Modify (or create alongside): `integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/DslFixtureVerifiers.kt` to add a `verifyKafkaApp` entry, OR add a new `KafkaFixtureVerifier.kt` next to it.
 
 - [ ] **Step 1: Inspect an existing Maven fixture to copy its `pom.xml` layout**
 
@@ -1730,7 +1730,7 @@ Use the exact same `.kt` files as the Gradle fixture from Task 12 (copy them int
 
 - [ ] **Step 3: Register the verifier in the Maven `FixtureBuildTest`**
 
-Open `integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it/FixtureBuildTest.kt` and find the dispatch matching fixture names. Add:
+Open `integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it/FixtureBuildTest.kt` and find the dispatch matching fixture names. Add:
 
 ```kotlin
             "kafka-app" -> KafkaFixtureVerifier.verify(File(workDir, "target/wirespec"))
@@ -1768,7 +1768,7 @@ Expected: every test in every module passes.
 
 ```bash
 git add integration-tests-maven/src/it/kafka-app \
-        integration-tests-maven/src/test/kotlin/community/flock/wirespec/bytecode/extractor/it
+        integration-tests-maven/src/test/kotlin/community/flock/wirespec/extractor/it
 git commit -m "test(it): mirror Kafka fixture in the Maven integration suite"
 ```
 

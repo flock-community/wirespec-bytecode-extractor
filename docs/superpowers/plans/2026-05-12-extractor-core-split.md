@@ -58,7 +58,7 @@ Verify with `git status --short` — should show a long list of renames (`R`) an
 Replace the contents with:
 
 ```kotlin
-rootProject.name = "wirespec-bytecode-extractor"
+rootProject.name = "wirespec-extractor"
 
 pluginManagement {
     repositories {
@@ -158,7 +158,7 @@ plugins {
 }
 
 description = "Spring → Wirespec extraction logic. Maven-agnostic; drives the Maven plugin."
-base.archivesName.set("wirespec-bytecode-extractor-core")
+base.archivesName.set("wirespec-extractor-core")
 
 kotlin {
     jvmToolchain(21)
@@ -193,9 +193,9 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "wirespec-bytecode-extractor-core"
+            artifactId = "wirespec-extractor-core"
             pom {
-                name.set("Wirespec Bytecode Extractor Core")
+                name.set("Wirespec Extractor Core")
                 description.set(project.description)
             }
         }
@@ -242,7 +242,7 @@ git commit -m "build: scaffold extractor-core module"
 
 **Goal:** Move every file in `extractor-maven-plugin/` that does not import `org.apache.maven.*` to `extractor-core/`, with no edits to file contents. Add `implementation(project(":extractor-core"))` to the plugin module and strip the dependencies that travelled with the moved code.
 
-**Files moved (main):** the entire `classpath/`, `scan/`, `model/`, `ast/`, `extract/`, `emit/` subtrees under `src/main/kotlin/community/flock/wirespec/bytecode/extractor/`.
+**Files moved (main):** the entire `classpath/`, `scan/`, `model/`, `ast/`, `extract/`, `emit/` subtrees under `src/main/kotlin/community/flock/wirespec/extractor/`.
 
 **Files moved (test):** the test-side mirrors of those subtrees, plus the entire `fixtures/` subtree.
 
@@ -260,37 +260,37 @@ git commit -m "build: scaffold extractor-core module"
 Run each command from the repository root:
 
 ```bash
-mkdir -p extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/classpath \
-       extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/classpath
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/scan \
-       extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/scan
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model \
-       extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/model
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ast \
-       extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ast
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract \
-       extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/extract
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit \
-       extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit
+mkdir -p extractor-core/src/main/kotlin/community/flock/wirespec/extractor
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/classpath \
+       extractor-core/src/main/kotlin/community/flock/wirespec/extractor/classpath
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/scan \
+       extractor-core/src/main/kotlin/community/flock/wirespec/extractor/scan
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/model \
+       extractor-core/src/main/kotlin/community/flock/wirespec/extractor/model
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ast \
+       extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ast
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/extract \
+       extractor-core/src/main/kotlin/community/flock/wirespec/extractor/extract
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/emit \
+       extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit
 ```
 
 - [ ] **Step 2: Move test source files via `git mv`**
 
 ```bash
-mkdir -p extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/classpath \
-       extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/classpath
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/scan \
-       extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/scan
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ast \
-       extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ast
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit \
-       extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract \
-       extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/extract
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures \
-       extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/fixtures
+mkdir -p extractor-core/src/test/kotlin/community/flock/wirespec/extractor
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/classpath \
+       extractor-core/src/test/kotlin/community/flock/wirespec/extractor/classpath
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/scan \
+       extractor-core/src/test/kotlin/community/flock/wirespec/extractor/scan
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ast \
+       extractor-core/src/test/kotlin/community/flock/wirespec/extractor/ast
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/emit \
+       extractor-core/src/test/kotlin/community/flock/wirespec/extractor/emit
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/extract \
+       extractor-core/src/test/kotlin/community/flock/wirespec/extractor/extract
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/fixtures \
+       extractor-core/src/test/kotlin/community/flock/wirespec/extractor/fixtures
 ```
 
 - [ ] **Step 3: Verify the only remaining sources in `extractor-maven-plugin/src/`**
@@ -302,14 +302,14 @@ find extractor-maven-plugin/src -name "*.xml" | sort
 
 Expected output (exactly four files, two `.kt` main + two `.kt` test + one `.xml`):
 ```
-extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt
-extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecLifecycleParticipant.kt
-extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojoTest.kt
-extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecLifecycleParticipantTest.kt
+extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt
+extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/WirespecLifecycleParticipant.kt
+extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ExtractMojoTest.kt
+extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/WirespecLifecycleParticipantTest.kt
 extractor-maven-plugin/src/main/resources/META-INF/plexus/components.xml
 ```
 
-If anything else is left over, move it to `extractor-core/` using the same pattern (preserving its package path under `src/main/kotlin/community/flock/wirespec/bytecode/extractor/` or `src/test/kotlin/.../`).
+If anything else is left over, move it to `extractor-core/` using the same pattern (preserving its package path under `src/main/kotlin/community/flock/wirespec/extractor/` or `src/test/kotlin/.../`).
 
 - [ ] **Step 4: Update `extractor-maven-plugin/build.gradle.kts` dependencies**
 
@@ -390,9 +390,9 @@ No behavior change."
 **Why:** The new core `ExtractResult` needs the list of `.ws` files actually written. Today `Emitter.write` returns `Unit`. This is a small, focused change with one call site (the mojo's `execute()` body) that we update in the same commit.
 
 **Files:**
-- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit/Emitter.kt`
-- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit/EmitterTest.kt`
-- Modify: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt` (one-line: ignore the new return value, for now)
+- Modify: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit/Emitter.kt`
+- Modify: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/emit/EmitterTest.kt`
+- Modify: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt` (one-line: ignore the new return value, for now)
 
 - [ ] **Step 1: Add a failing test in `EmitterTest.kt`**
 
@@ -442,14 +442,14 @@ Add this test at the end of the `EmitterTest` class, before the closing brace:
 - [ ] **Step 2: Run the new tests to confirm they fail**
 
 ```bash
-./gradlew :extractor-core:test --tests "community.flock.wirespec.bytecode.extractor.emit.EmitterTest"
+./gradlew :extractor-core:test --tests "community.flock.wirespec.extractor.emit.EmitterTest"
 ```
 
 Expected: COMPILATION ERROR — `Type mismatch: inferred type is Unit but List<File> was expected`. (Or, if Kotlin's smart-cast quirks let the assignment through, FAIL on the `written.map` line.)
 
 - [ ] **Step 3: Modify `Emitter.write` to return `List<File>`**
 
-Open `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit/Emitter.kt` and replace the `write` function body (currently returns `Unit`):
+Open `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit/Emitter.kt` and replace the `write` function body (currently returns `Unit`):
 
 ```kotlin
     fun write(
@@ -484,7 +484,7 @@ Open `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor
 
 - [ ] **Step 4: Update the mojo's single call site**
 
-Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt`. Find this block (around line 84):
+Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt`. Find this block (around line 84):
 
 ```kotlin
         Emitter().write(
@@ -515,8 +515,8 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/emit/Emitter.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/emit/EmitterTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/emit/Emitter.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/emit/EmitterTest.kt
 git commit -m "refactor(emitter): return list of written .ws files
 
 Emitter.write now returns List<File> instead of Unit so the upcoming
@@ -532,19 +532,19 @@ no behavior change."
 **Goal:** Add `WirespecExtractor.extract(ExtractConfig): ExtractResult` plus its supporting types (`ExtractConfig`, `ExtractResult`, `ExtractLog`, `WirespecExtractorException`), with internal versions of the three orphan helpers from `ExtractMojo.kt`. Cover the public contract with a new `WirespecExtractorTest`. Existing `ExtractMojo` is not changed in this task (it still has its own copies of the helpers and uses them directly); Task 6 wires it through the new API.
 
 **Files:**
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt`
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractConfig.kt`
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractResult.kt`
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractLog.kt`
-- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt`
-- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ExtractConfig.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ExtractResult.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ExtractLog.kt`
+- Create: `extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractorException.kt`
+- Create: `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/WirespecExtractorTest.kt`
 
 - [ ] **Step 1: Write the failing happy-path test**
 
-Create `extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt`:
+Create `extractor-core/src/test/kotlin/community/flock/wirespec/extractor/WirespecExtractorTest.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
@@ -560,7 +560,7 @@ class WirespecExtractorTest {
     /** Locate the test-classes directory of this module on the runtime classpath. */
     private fun thisModuleClassesDir(): File {
         // Any fixture class works as a probe; HelloController is small and stable.
-        val probe = community.flock.wirespec.bytecode.extractor.fixtures.HelloController::class.java
+        val probe = community.flock.wirespec.extractor.fixtures.HelloController::class.java
         val classFileUrl = probe.protectionDomain.codeSource.location
         return File(classFileUrl.toURI())
     }
@@ -573,7 +573,7 @@ class WirespecExtractorTest {
                 classesDirectory = thisModuleClassesDir(),
                 runtimeClasspath = emptyList(),
                 outputDirectory = out,
-                basePackage = "community.flock.wirespec.bytecode.extractor.fixtures",
+                basePackage = "community.flock.wirespec.extractor.fixtures",
             )
         )
 
@@ -615,7 +615,7 @@ class WirespecExtractorTest {
                 classesDirectory = thisModuleClassesDir(),
                 runtimeClasspath = emptyList(),
                 outputDirectory = out,
-                basePackage = "community.flock.wirespec.bytecode.extractor.fixtures",
+                basePackage = "community.flock.wirespec.extractor.fixtures",
                 log = log,
             )
         )
@@ -633,7 +633,7 @@ class WirespecExtractorTest {
                 classesDirectory = thisModuleClassesDir(),
                 runtimeClasspath = emptyList(),
                 outputDirectory = out,
-                basePackage = "community.flock.wirespec.bytecode.extractor.fixtures",
+                basePackage = "community.flock.wirespec.extractor.fixtures",
             )
         )
     }
@@ -643,7 +643,7 @@ class WirespecExtractorTest {
 - [ ] **Step 2: Run the new test to confirm it fails to compile (no API yet)**
 
 ```bash
-./gradlew :extractor-core:test --tests "community.flock.wirespec.bytecode.extractor.WirespecExtractorTest"
+./gradlew :extractor-core:test --tests "community.flock.wirespec.extractor.WirespecExtractorTest"
 ```
 
 Expected: COMPILATION ERROR — `Unresolved reference: WirespecExtractor` (and `ExtractConfig`, `ExtractLog`, `WirespecExtractorException`).
@@ -651,7 +651,7 @@ Expected: COMPILATION ERROR — `Unresolved reference: WirespecExtractor` (and `
 - [ ] **Step 3: Create `WirespecExtractorException.kt`**
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 /**
  * Thrown by [WirespecExtractor.extract] when extraction fails because of:
@@ -668,7 +668,7 @@ class WirespecExtractorException(
 - [ ] **Step 4: Create `ExtractLog.kt`**
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 /**
  * Logger sink consumed by [WirespecExtractor.extract]. Implementations bridge
@@ -689,7 +689,7 @@ interface ExtractLog {
 - [ ] **Step 5: Create `ExtractConfig.kt`**
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import java.io.File
 
@@ -717,7 +717,7 @@ data class ExtractConfig(
 - [ ] **Step 6: Create `ExtractResult.kt`**
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import java.io.File
 
@@ -739,15 +739,15 @@ data class ExtractResult(
 - [ ] **Step 7: Create `WirespecExtractor.kt`**
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import community.flock.wirespec.compiler.core.parse.ast.Definition
-import community.flock.wirespec.bytecode.extractor.ast.WirespecAstBuilder
-import community.flock.wirespec.bytecode.extractor.classpath.ClasspathBuilder
-import community.flock.wirespec.bytecode.extractor.emit.Emitter
-import community.flock.wirespec.bytecode.extractor.extract.EndpointExtractor
-import community.flock.wirespec.bytecode.extractor.extract.TypeExtractor
-import community.flock.wirespec.bytecode.extractor.scan.ControllerScanner
+import community.flock.wirespec.extractor.ast.WirespecAstBuilder
+import community.flock.wirespec.extractor.classpath.ClasspathBuilder
+import community.flock.wirespec.extractor.emit.Emitter
+import community.flock.wirespec.extractor.extract.EndpointExtractor
+import community.flock.wirespec.extractor.extract.TypeExtractor
+import community.flock.wirespec.extractor.scan.ControllerScanner
 import java.io.File
 
 /**
@@ -862,7 +862,7 @@ internal fun assertOutputWritable(output: File) {
 - [ ] **Step 8: Run the new test to verify it passes**
 
 ```bash
-./gradlew :extractor-core:test --tests "community.flock.wirespec.bytecode.extractor.WirespecExtractorTest"
+./gradlew :extractor-core:test --tests "community.flock.wirespec.extractor.WirespecExtractorTest"
 ```
 
 Expected: BUILD SUCCESSFUL, four tests pass.
@@ -892,12 +892,12 @@ Expected: BUILD SUCCESSFUL.
 - [ ] **Step 11: Commit**
 
 ```bash
-git add extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractor.kt \
-        extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractConfig.kt \
-        extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractResult.kt \
-        extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractLog.kt \
-        extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorException.kt \
-        extractor-core/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecExtractorTest.kt
+git add extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractor.kt \
+        extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ExtractConfig.kt \
+        extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ExtractResult.kt \
+        extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ExtractLog.kt \
+        extractor-core/src/main/kotlin/community/flock/wirespec/extractor/WirespecExtractorException.kt \
+        extractor-core/src/test/kotlin/community/flock/wirespec/extractor/WirespecExtractorTest.kt
 git commit -m "feat(core): add WirespecExtractor public API
 
 Introduce WirespecExtractor.extract(ExtractConfig): ExtractResult as
@@ -918,16 +918,16 @@ API."
 **Goal:** Reduce `ExtractMojo.execute()` to a thin adapter that calls `WirespecExtractor.extract()`. Add a `MavenExtractLog` adapter so Maven's `Log` plugs into core's `ExtractLog`. Remove the now-duplicate helpers and helper-tests from `ExtractMojo.kt` / `ExtractMojoTest.kt`. Add the small set of adapter-layer tests the spec calls for.
 
 **Files:**
-- Modify: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt`
-- Create: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/MavenExtractLog.kt`
-- Modify: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojoTest.kt`
+- Modify: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt`
+- Create: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/MavenExtractLog.kt`
+- Modify: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ExtractMojoTest.kt`
 
 - [ ] **Step 1: Write the failing adapter test**
 
-Replace the entire contents of `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojoTest.kt` with:
+Replace the entire contents of `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ExtractMojoTest.kt` with:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -1002,17 +1002,17 @@ This test won't compile yet — `MavenExtractLog` doesn't exist (Step 4 creates 
 - [ ] **Step 2: Run the new tests to confirm they fail**
 
 ```bash
-./gradlew :extractor-maven-plugin:test --tests "community.flock.wirespec.bytecode.extractor.ExtractMojoTest"
+./gradlew :extractor-maven-plugin:test --tests "community.flock.wirespec.extractor.ExtractMojoTest"
 ```
 
 Expected: COMPILATION ERROR — `Unresolved reference: MavenExtractLog` (and possibly other failures depending on `project.runtimeClasspathElements` resolution).
 
 - [ ] **Step 3: Rewrite `ExtractMojo.kt` as the shim**
 
-Replace the entire file `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt` with:
+Replace the entire file `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt` with:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
@@ -1070,10 +1070,10 @@ The orphan helpers (`detectControllerCollisions`, `effectiveBasePackage`, `asser
 
 - [ ] **Step 4: Create `MavenExtractLog.kt`**
 
-Create `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/MavenExtractLog.kt`:
+Create `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/MavenExtractLog.kt`:
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 /**
  * Adapts Maven's plugin [org.apache.maven.plugin.logging.Log] to core's
@@ -1110,9 +1110,9 @@ If a fixture fails with a different shape of `MojoExecutionException`: check tha
 - [ ] **Step 7: Commit**
 
 ```bash
-git add extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt \
-        extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/MavenExtractLog.kt \
-        extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojoTest.kt
+git add extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt \
+        extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/MavenExtractLog.kt \
+        extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ExtractMojoTest.kt
 git commit -m "refactor(mojo): make ExtractMojo a thin shim over WirespecExtractor
 
 ExtractMojo.execute() now maps MavenProject onto ExtractConfig, calls
@@ -1134,116 +1134,116 @@ No behavior change for Maven users."
 
 ## Task 7: Repackage Maven adapter classes to `…extractor.maven`
 
-**Goal:** Move `ExtractMojo`, `WirespecLifecycleParticipant`, `MavenExtractLog`, and their tests into the `community.flock.wirespec.bytecode.extractor.maven` subpackage. Update `META-INF/plexus/components.xml` to reference the new FQN of the lifecycle participant.
+**Goal:** Move `ExtractMojo`, `WirespecLifecycleParticipant`, `MavenExtractLog`, and their tests into the `community.flock.wirespec.extractor.maven` subpackage. Update `META-INF/plexus/components.xml` to reference the new FQN of the lifecycle participant.
 
 **Files:**
-- Move: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt` → `.../extractor/maven/ExtractMojo.kt`
-- Move: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecLifecycleParticipant.kt` → `.../extractor/maven/WirespecLifecycleParticipant.kt`
-- Move: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/MavenExtractLog.kt` → `.../extractor/maven/MavenExtractLog.kt`
-- Move: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojoTest.kt` → `.../extractor/maven/ExtractMojoTest.kt`
-- Move: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecLifecycleParticipantTest.kt` → `.../extractor/maven/WirespecLifecycleParticipantTest.kt`
+- Move: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt` → `.../extractor/maven/ExtractMojo.kt`
+- Move: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/WirespecLifecycleParticipant.kt` → `.../extractor/maven/WirespecLifecycleParticipant.kt`
+- Move: `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/MavenExtractLog.kt` → `.../extractor/maven/MavenExtractLog.kt`
+- Move: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ExtractMojoTest.kt` → `.../extractor/maven/ExtractMojoTest.kt`
+- Move: `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/WirespecLifecycleParticipantTest.kt` → `.../extractor/maven/WirespecLifecycleParticipantTest.kt`
 - Modify: `extractor-maven-plugin/src/main/resources/META-INF/plexus/components.xml`
 
 - [ ] **Step 1: Move the source files**
 
 ```bash
-mkdir -p extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven
-mkdir -p extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/maven
+mkdir -p extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven
+mkdir -p extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/maven
 
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojo.kt \
-       extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojo.kt
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/WirespecLifecycleParticipant.kt \
-       extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/WirespecLifecycleParticipant.kt
-git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/MavenExtractLog.kt \
-       extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/MavenExtractLog.kt
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/ExtractMojoTest.kt \
-       extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojoTest.kt
-git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/WirespecLifecycleParticipantTest.kt \
-       extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/maven/WirespecLifecycleParticipantTest.kt
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/ExtractMojo.kt \
+       extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven/ExtractMojo.kt
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/WirespecLifecycleParticipant.kt \
+       extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven/WirespecLifecycleParticipant.kt
+git mv extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/MavenExtractLog.kt \
+       extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven/MavenExtractLog.kt
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/ExtractMojoTest.kt \
+       extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/maven/ExtractMojoTest.kt
+git mv extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/WirespecLifecycleParticipantTest.kt \
+       extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/maven/WirespecLifecycleParticipantTest.kt
 ```
 
 - [ ] **Step 2: Update package declarations in `ExtractMojo.kt`**
 
-Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojo.kt`.
+Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven/ExtractMojo.kt`.
 
 Find:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 ```
 
 Replace with:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.maven
+package community.flock.wirespec.extractor.maven
 
-import community.flock.wirespec.bytecode.extractor.ExtractConfig
-import community.flock.wirespec.bytecode.extractor.WirespecExtractor
-import community.flock.wirespec.bytecode.extractor.WirespecExtractorException
+import community.flock.wirespec.extractor.ExtractConfig
+import community.flock.wirespec.extractor.WirespecExtractor
+import community.flock.wirespec.extractor.WirespecExtractorException
 ```
 
 (The imports for `ExtractConfig`, `WirespecExtractor`, `WirespecExtractorException` were implicit when the mojo was in the same package as them; now they need explicit imports.)
 
 - [ ] **Step 3: Update package declaration in `WirespecLifecycleParticipant.kt`**
 
-Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/WirespecLifecycleParticipant.kt`.
+Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven/WirespecLifecycleParticipant.kt`.
 
 Find:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 ```
 
 Replace with:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.maven
+package community.flock.wirespec.extractor.maven
 ```
 
 No imports need to change — `WirespecLifecycleParticipant` only uses Maven types and Plexus annotations, all already imported.
 
 - [ ] **Step 4: Update package declaration in `MavenExtractLog.kt`**
 
-Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/bytecode/extractor/maven/MavenExtractLog.kt`.
+Open `extractor-maven-plugin/src/main/kotlin/community/flock/wirespec/extractor/maven/MavenExtractLog.kt`.
 
 Find:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 ```
 
 Replace with:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.maven
+package community.flock.wirespec.extractor.maven
 
-import community.flock.wirespec.bytecode.extractor.ExtractLog
+import community.flock.wirespec.extractor.ExtractLog
 ```
 
 - [ ] **Step 5: Update package declaration in `ExtractMojoTest.kt`**
 
-Open `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/maven/ExtractMojoTest.kt`.
+Open `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/maven/ExtractMojoTest.kt`.
 
 Find:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 ```
 
 Replace with:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.maven
+package community.flock.wirespec.extractor.maven
 
-import community.flock.wirespec.bytecode.extractor.WirespecExtractorException
+import community.flock.wirespec.extractor.WirespecExtractorException
 ```
 
 (Only `WirespecExtractorException` needs an explicit import — references to `ExtractMojo` and `MavenExtractLog` resolve from the same package.)
 
 - [ ] **Step 6: Update package declaration in `WirespecLifecycleParticipantTest.kt`**
 
-Open `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/bytecode/extractor/maven/WirespecLifecycleParticipantTest.kt`.
+Open `extractor-maven-plugin/src/test/kotlin/community/flock/wirespec/extractor/maven/WirespecLifecycleParticipantTest.kt`.
 
 Find:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 ```
 
 Replace with:
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.maven
+package community.flock.wirespec.extractor.maven
 ```
 
 No imports need to change — `WirespecLifecycleParticipant` is referenced unqualified and resolves from the same package.
@@ -1254,15 +1254,15 @@ Open `extractor-maven-plugin/src/main/resources/META-INF/plexus/components.xml`.
 
 Find:
 ```xml
-<implementation>community.flock.wirespec.bytecode.extractor.WirespecLifecycleParticipant</implementation>
+<implementation>community.flock.wirespec.extractor.WirespecLifecycleParticipant</implementation>
 ```
 
 Replace with:
 ```xml
-<implementation>community.flock.wirespec.bytecode.extractor.maven.WirespecLifecycleParticipant</implementation>
+<implementation>community.flock.wirespec.extractor.maven.WirespecLifecycleParticipant</implementation>
 ```
 
-The `<role-hint>wirespec-bytecode-extractor</role-hint>` stays unchanged.
+The `<role-hint>wirespec-extractor</role-hint>` stays unchanged.
 
 - [ ] **Step 8: Run unit tests**
 
@@ -1289,7 +1289,7 @@ git add -A
 git commit -m "refactor(maven): move Maven adapter classes to ...extractor.maven
 
 ExtractMojo, WirespecLifecycleParticipant, MavenExtractLog, and their
-tests now live in the community.flock.wirespec.bytecode.extractor.maven
+tests now live in the community.flock.wirespec.extractor.maven
 subpackage. components.xml updates the Plexus <implementation> FQN to
 match.
 
@@ -1301,7 +1301,7 @@ default phase, and <extensions>true</extensions> behavior."
 
 ## Task 8: Add `:extractor-core` publish dependency to integration tests + final end-to-end verification
 
-**Goal:** The Maven plugin's published POM now declares `wirespec-bytecode-extractor-core` as a runtime dependency. The integration-test Maven runs need that core artifact in the IT-local repo when they resolve the plugin. One line of build glue, then a full integration-test pass as the final regression check.
+**Goal:** The Maven plugin's published POM now declares `wirespec-extractor-core` as a runtime dependency. The integration-test Maven runs need that core artifact in the IT-local repo when they resolve the plugin. One line of build glue, then a full integration-test pass as the final regression check.
 
 **Files:**
 - Modify: `integration-tests/build.gradle.kts`
@@ -1327,7 +1327,7 @@ dependsOn(":extractor-core:publishMavenPublicationToItLocalRepository")
 
 Expected: BUILD SUCCESSFUL. Both `basic-kotlin-app` and `basic-spring-app` produce `.ws` output that matches every assertion in `FixtureBuildTest`.
 
-If a fixture fails with a Maven dependency resolution error mentioning `wirespec-bytecode-extractor-core`, the publish dep isn't taking effect. Verify Step 1; confirm `build/it-repo/community/flock/wirespec/bytecode/wirespec-bytecode-extractor-core/` exists after running `./gradlew :extractor-core:publishMavenPublicationToItLocalRepository`.
+If a fixture fails with a Maven dependency resolution error mentioning `wirespec-extractor-core`, the publish dep isn't taking effect. Verify Step 1; confirm `build/it-repo/community/flock/wirespec/extractor/wirespec-extractor-core/` exists after running `./gradlew :extractor-core:publishMavenPublicationToItLocalRepository`.
 
 - [ ] **Step 3: Run the full test suite once more for completeness**
 
@@ -1341,15 +1341,15 @@ Expected: BUILD SUCCESSFUL. Every unit test in `extractor-core` and `extractor-m
 
 ```bash
 ./gradlew :extractor-maven-plugin:publishMavenPublicationToItLocalRepository :extractor-core:publishMavenPublicationToItLocalRepository
-find build/it-repo -name "wirespec-bytecode-extractor-maven-plugin-*.pom" | head -1 | xargs cat
+find build/it-repo -name "wirespec-extractor-maven-plugin-*.pom" | head -1 | xargs cat
 ```
 
 Expected: the printed POM contains a `<dependency>` element:
 
 ```xml
 <dependency>
-  <groupId>community.flock.wirespec.bytecode</groupId>
-  <artifactId>wirespec-bytecode-extractor-core</artifactId>
+  <groupId>community.flock.wirespec.extractor</groupId>
+  <artifactId>wirespec-extractor-core</artifactId>
   <version>0.0.0-SNAPSHOT</version>
   <scope>compile</scope>
 </dependency>
@@ -1377,7 +1377,7 @@ Expected: log lines confirming `.ws` files were written for both fixtures. The I
 git add integration-tests/build.gradle.kts
 git commit -m "build(it): depend on :extractor-core publication for IT runs
 
-The Maven plugin's published POM now declares wirespec-bytecode-extractor-core
+The Maven plugin's published POM now declares wirespec-extractor-core
 as a runtime dependency. Integration-test fixture builds need the core
 artifact present in the IT-local repo when they resolve the plugin."
 ```
@@ -1409,5 +1409,5 @@ refactor: rename plugin/ to extractor-maven-plugin/
 ## Post-implementation: optional follow-ups (out of scope, listed for awareness)
 
 - **`@RestController` Gradle plugin or CLI consumer** of `extractor-core`. Now possible because the core is published independently.
-- **README update** in a follow-up PR to mention `wirespec-bytecode-extractor-core` exists.
-- **CHANGELOG/release notes** if the project adopts one. The relevant line: "Internal split into `wirespec-bytecode-extractor-core` + `wirespec-bytecode-extractor-maven-plugin`; no behavior change for Maven users."
+- **README update** in a follow-up PR to mention `wirespec-extractor-core` exists.
+- **CHANGELOG/release notes** if the project adopts one. The relevant line: "Internal split into `wirespec-extractor-core` + `wirespec-extractor-maven-plugin`; no behavior change for Maven users."

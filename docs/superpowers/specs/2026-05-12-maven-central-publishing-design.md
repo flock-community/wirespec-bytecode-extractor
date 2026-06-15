@@ -9,8 +9,8 @@ Release. Add a separate CI workflow that builds and tests on PRs and pushes to
 ## Goals
 
 - A `git`-only release flow: publishing a GitHub Release (tag `vX.Y.Z`) results
-  in `community.flock.wirespec.bytecode:wirespec-bytecode-extractor-core:X.Y.Z` and
-  `:wirespec-bytecode-extractor-maven-plugin:X.Y.Z` on Maven Central within
+  in `community.flock.wirespec.extractor:wirespec-extractor-core:X.Y.Z` and
+  `:wirespec-extractor-maven-plugin:X.Y.Z` on Maven Central within
   ~15 min, with no human action between the release click and the artifacts
   going live.
 - Continuous validation: every PR and every push to `main` runs the full
@@ -58,10 +58,10 @@ blocks.
 
 Unchanged from the current setup:
 
-- **Group:** `community.flock.wirespec.bytecode`
+- **Group:** `community.flock.wirespec.extractor`
 - **Artifacts:**
-  - `wirespec-bytecode-extractor-core`
-  - `wirespec-bytecode-extractor-maven-plugin` (packaging `maven-plugin`)
+  - `wirespec-extractor-core`
+  - `wirespec-extractor-maven-plugin` (packaging `maven-plugin`)
 - **Version source:** the release tag (e.g. `v0.1.0` → version `0.1.0`). The
   workflow strips the leading `v` and passes the result via `-Pversion=`.
   `gradle.properties` stays at `0.0.0-SNAPSHOT` as the dev default; no version
@@ -198,8 +198,8 @@ subprojects {
             signAllPublications()
 
             val publishedArtifactId = when (name) {
-                "extractor-core"          -> "wirespec-bytecode-extractor-core"
-                "extractor-maven-plugin"  -> "wirespec-bytecode-extractor-maven-plugin"
+                "extractor-core"          -> "wirespec-extractor-core"
+                "extractor-maven-plugin"  -> "wirespec-extractor-maven-plugin"
                 else                      -> error("unreachable")
             }
             coordinates(
@@ -211,7 +211,7 @@ subprojects {
             pom {
                 name.set(publishedArtifactId)
                 description.set(provider { project.description ?: publishedArtifactId })
-                url.set("https://github.com/flock-community/wirespec-bytecode-extractor")
+                url.set("https://github.com/flock-community/wirespec-extractor")
                 if (name == "extractor-maven-plugin") {
                     packaging = "maven-plugin"
                 }
@@ -231,9 +231,9 @@ subprojects {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/flock-community/wirespec-bytecode-extractor.git")
-                    developerConnection.set("scm:git:ssh://github.com:flock-community/wirespec-bytecode-extractor.git")
-                    url.set("https://github.com/flock-community/wirespec-bytecode-extractor")
+                    connection.set("scm:git:git://github.com/flock-community/wirespec-extractor.git")
+                    developerConnection.set("scm:git:ssh://github.com:flock-community/wirespec-extractor.git")
+                    url.set("https://github.com/flock-community/wirespec-extractor")
                 }
             }
         }
@@ -292,7 +292,7 @@ In both `extractor-core/build.gradle.kts` and
 
 The release workflow consumes exactly the four secrets the user named. These
 must be set under **Settings → Secrets and variables → Actions** on the
-`flock-community/wirespec-bytecode-extractor` repo:
+`flock-community/wirespec-extractor` repo:
 
 | Secret | Value |
 |---|---|
@@ -315,14 +315,14 @@ Portal validates the signature against the keyservers, not against the secret.
 3. `release.yml` fires automatically. It checks out the tagged commit, builds,
    signs, uploads to the Portal, and triggers auto-promotion.
 4. Within ~15 min, both artifacts appear under
-   `https://repo1.maven.org/maven2/community/flock/wirespec/bytecode/`.
+   `https://repo1.maven.org/maven2/community/flock/wirespec/extractor/`.
 
 ## Validation checklist (during implementation)
 
 - [ ] `./gradlew build` is green locally before the workflow runs anywhere.
 - [ ] `./gradlew publishToMavenLocal -Pversion=0.1.0-test` produces signed
       `.jar`, `-sources.jar`, `-javadoc.jar`, `.pom`, and `.asc` files for
-      both modules under `~/.m2/repository/community/flock/wirespec/bytecode/`.
+      both modules under `~/.m2/repository/community/flock/wirespec/extractor/`.
       (Requires local GPG setup; can also be tested with
       `signingInMemoryKey` env vars.)
 - [ ] First release uses a clearly throwaway version (e.g. `v0.0.1`) so the
@@ -341,7 +341,7 @@ Portal validates the signature against the keyservers, not against the secret.
   step in the rollout checklist (`gpg --send-keys --keyserver keys.openpgp.org <keyid>`).
 - **Namespace not yet claimed on Central Portal.** Publishing to a brand-new
   group requires DNS or GitHub-based namespace verification on the Portal
-  side. Mitigation: confirm the `community.flock.wirespec.bytecode` namespace
+  side. Mitigation: confirm the `community.flock.wirespec.extractor` namespace
   is claimed before the first release attempt. If it isn't, this is a one-time
   manual step on central.sonatype.com.
 - **Auto-publish surface area.** With `automaticRelease = true` a bad upload
