@@ -5,7 +5,7 @@ plugins {
 }
 
 description = "Spring → Wirespec extraction logic. Maven-agnostic; drives the Maven plugin."
-base.archivesName.set("wirespec-bytecode-extractor-core")
+base.archivesName.set("wirespec-extractor-core")
 
 kotlin {
     jvmToolchain(21)

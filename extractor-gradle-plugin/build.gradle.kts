@@ -7,7 +7,7 @@ plugins {
 }
 
 description = "Gradle plugin: extracts Spring Boot endpoints into Wirespec .ws files."
-base.archivesName.set("wirespec-bytecode-extractor-gradle-plugin")
+base.archivesName.set("wirespec-extractor-gradle-plugin")
 
 kotlin {
     jvmToolchain(21)
@@ -21,13 +21,13 @@ kotlin {
 
 gradlePlugin {
     website.set("https://wirespec.io")
-    vcsUrl.set("https://github.com/flock-community/wirespec-bytecode-extractor")
+    vcsUrl.set("https://github.com/flock-community/wirespec-extractor")
     plugins {
         register("wirespecExtractor") {
-            id = "community.flock.wirespec.bytecode.extractor"
-            displayName = "Wirespec Bytecode Extractor"
+            id = "community.flock.wirespec.extractor"
+            displayName = "Wirespec Extractor"
             description = project.description
-            implementationClass = "community.flock.wirespec.bytecode.extractor.gradle.WirespecExtractorPlugin"
+            implementationClass = "community.flock.wirespec.extractor.gradle.WirespecExtractorPlugin"
             tags.set(listOf("wirespec", "spring", "openapi", "schema"))
         }
     }

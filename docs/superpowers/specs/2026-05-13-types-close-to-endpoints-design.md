@@ -62,7 +62,7 @@ registration order.
 ### `TypeOwnership` component
 
 Located at
-`extractor-core/src/main/kotlin/community/flock/wirespec/bytecode/extractor/ownership/TypeOwnership.kt`.
+`extractor-core/src/main/kotlin/community/flock/wirespec/extractor/ownership/TypeOwnership.kt`.
 
 ```kotlin
 internal object TypeOwnership {

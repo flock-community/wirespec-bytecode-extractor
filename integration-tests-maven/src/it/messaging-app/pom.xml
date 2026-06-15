@@ -77,8 +77,8 @@
             </plugin>
 
             <plugin>
-                <groupId>community.flock.wirespec.bytecode</groupId>
-                <artifactId>wirespec-bytecode-extractor-maven-plugin</artifactId>
+                <groupId>community.flock.wirespec.extractor</groupId>
+                <artifactId>wirespec-extractor-maven-plugin</artifactId>
                 <version>@project.version@</version>
                 <extensions>true</extensions>
                 <configuration>

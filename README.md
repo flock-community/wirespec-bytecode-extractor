@@ -1,7 +1,7 @@
-# wirespec-bytecode-extractor
+# wirespec-extractor
 
-[![Maven plugin (Maven Central)](https://img.shields.io/maven-central/v/community.flock.wirespec.bytecode/wirespec-bytecode-extractor-maven-plugin?label=maven-plugin)](https://central.sonatype.com/artifact/community.flock.wirespec.bytecode/wirespec-bytecode-extractor-maven-plugin)
-[![Gradle plugin (Maven Central)](https://img.shields.io/maven-central/v/community.flock.wirespec.bytecode.extractor/community.flock.wirespec.bytecode.extractor.gradle.plugin?label=gradle-plugin)](https://central.sonatype.com/artifact/community.flock.wirespec.bytecode.extractor/community.flock.wirespec.bytecode.extractor.gradle.plugin)
+[![Maven plugin (Maven Central)](https://img.shields.io/maven-central/v/community.flock.wirespec.extractor/wirespec-extractor-maven-plugin?label=maven-plugin)](https://central.sonatype.com/artifact/community.flock.wirespec.extractor/wirespec-extractor-maven-plugin)
+[![Gradle plugin (Maven Central)](https://img.shields.io/maven-central/v/community.flock.wirespec.extractor/community.flock.wirespec.extractor.gradle.plugin?label=gradle-plugin)](https://central.sonatype.com/artifact/community.flock.wirespec.extractor/community.flock.wirespec.extractor.gradle.plugin)
 
 A Maven and Gradle plugin that scans a JVM application's compiled classes and emits
 [Wirespec](https://wirespec.io) (`.ws`) files describing its API. It reads Spring MVC /
@@ -19,8 +19,8 @@ auto-binds to `process-classes`:
 <build>
   <plugins>
     <plugin>
-      <groupId>community.flock.wirespec.bytecode</groupId>
-      <artifactId>wirespec-bytecode-extractor-maven-plugin</artifactId>
+      <groupId>community.flock.wirespec.extractor</groupId>
+      <artifactId>wirespec-extractor-maven-plugin</artifactId>
       <version>0.0.3</version>
       <extensions>true</extensions>
       <configuration>
@@ -63,14 +63,14 @@ mvn wirespec:extract
 > ```
 >
 > Without this snippet the build fails with
-> `Plugin [id: 'community.flock.wirespec.bytecode.extractor', version: '...'] was not found in any of the following sources`.
+> `Plugin [id: 'community.flock.wirespec.extractor', version: '...'] was not found in any of the following sources`.
 
 ### Kotlin project
 
 ```kotlin
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("community.flock.wirespec.bytecode.extractor") version "0.0.3"
+    id("community.flock.wirespec.extractor") version "0.0.3"
 }
 
 dependencies {
@@ -105,7 +105,7 @@ wirespecExtractor {
 ```kotlin
 plugins {
     java
-    id("community.flock.wirespec.bytecode.extractor") version "0.0.3"
+    id("community.flock.wirespec.extractor") version "0.0.3"
 }
 
 java {
@@ -515,7 +515,7 @@ class UserClient(private val client: HttpClient) {
   `@ResponseBody`. Meta-annotated variants (e.g., custom annotations that are
   themselves annotated with `@ResponseBody`) are not detected in v1.
 
-See [docs/superpowers/specs/2026-05-12-wirespec-bytecode-extractor-design.md](docs/superpowers/specs/2026-05-12-wirespec-bytecode-extractor-design.md)
+See [docs/superpowers/specs/2026-05-12-wirespec-extractor-design.md](docs/superpowers/specs/2026-05-12-wirespec-extractor-design.md)
 for the full design and current scope limitations.
 
 ## Output layout

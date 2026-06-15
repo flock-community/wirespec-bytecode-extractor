@@ -20,9 +20,9 @@ This means the same logic could drive a Gradle plugin, a CLI, or programmatic us
 
 ## Goals
 
-1. **Make the extractor logic reusable** outside Maven by publishing it as a standalone Kotlin library (`wirespec-bytecode-extractor-core`).
+1. **Make the extractor logic reusable** outside Maven by publishing it as a standalone Kotlin library (`wirespec-extractor-core`).
 2. **Keep the Maven plugin a thin shim** (~30 lines of actual logic in `ExtractMojo`) that adapts Maven types to core types and Maven `Log` to a core `ExtractLog`.
-3. **Preserve the public Maven plugin artifact** — same groupId, same artifactId (`wirespec-bytecode-extractor-maven-plugin`), same goal prefix (`wirespec`), same default phase binding (`process-classes`), same `<extensions>true</extensions>` auto-bind behavior. **No breaking change for existing pom.xml consumers.**
+3. **Preserve the public Maven plugin artifact** — same groupId, same artifactId (`wirespec-extractor-maven-plugin`), same goal prefix (`wirespec`), same default phase binding (`process-classes`), same `<extensions>true</extensions>` auto-bind behavior. **No breaking change for existing pom.xml consumers.**
 4. **Preserve all existing test coverage** by moving tests with their subject code; add a new public-API contract test for `WirespecExtractor.extract(ExtractConfig)`.
 
 ## Non-goals
@@ -37,13 +37,13 @@ This means the same logic could drive a Gradle plugin, a CLI, or programmatic us
 ### Module layout
 
 ```
-wirespec-bytecode-extractor/
+wirespec-extractor/
 ├── settings.gradle.kts                  [edited]
 ├── build.gradle.kts                     [unchanged]
 ├── extractor-core/                      [NEW]
 │   ├── build.gradle.kts
 │   └── src/
-│       ├── main/kotlin/community/flock/wirespec/bytecode/extractor/
+│       ├── main/kotlin/community/flock/wirespec/extractor/
 │       │   ├── WirespecExtractor.kt           [NEW — public entry point]
 │       │   ├── ExtractConfig.kt               [NEW]
 │       │   ├── ExtractResult.kt               [NEW]
@@ -63,7 +63,7 @@ wirespec-bytecode-extractor/
 │       │   ├── extract/ValidationConstraints.kt       [moved verbatim]
 │       │   ├── ast/WirespecAstBuilder.kt              [moved verbatim]
 │       │   └── emit/Emitter.kt                        [moved verbatim]
-│       └── test/kotlin/community/flock/wirespec/bytecode/extractor/
+│       └── test/kotlin/community/flock/wirespec/extractor/
 │           ├── WirespecExtractorTest.kt               [NEW — public API contract]
 │           ├── (all current unit tests except ExtractMojoTest, WirespecLifecycleParticipantTest)
 │           └── fixtures/  (all current fixtures, unchanged)
@@ -71,12 +71,12 @@ wirespec-bytecode-extractor/
 ├── extractor-maven-plugin/              [RENAMED from plugin/]
 │   ├── build.gradle.kts                 [edited — fewer deps, project dep on :extractor-core]
 │   └── src/
-│       ├── main/kotlin/community/flock/wirespec/bytecode/extractor/maven/
+│       ├── main/kotlin/community/flock/wirespec/extractor/maven/
 │       │   ├── ExtractMojo.kt                  [rewritten as shim]
 │       │   ├── WirespecLifecycleParticipant.kt [moved + repackaged, behavior unchanged]
 │       │   └── MavenExtractLog.kt              [NEW — ExtractLog adapter over Maven Log]
 │       ├── main/resources/META-INF/plexus/components.xml  [edited — new FQN]
-│       └── test/kotlin/community/flock/wirespec/bytecode/extractor/maven/
+│       └── test/kotlin/community/flock/wirespec/extractor/maven/
 │           ├── ExtractMojoTest.kt              [moved + repackaged]
 │           └── WirespecLifecycleParticipantTest.kt [moved + repackaged]
 │
@@ -87,7 +87,7 @@ wirespec-bytecode-extractor/
 ### `extractor-core` public API
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor
+package community.flock.wirespec.extractor
 
 import java.io.File
 
@@ -155,12 +155,12 @@ Today, `Emitter().write(...)` returns `Unit`. To populate `ExtractResult.filesWr
 ### `extractor-maven-plugin` shim
 
 ```kotlin
-package community.flock.wirespec.bytecode.extractor.maven
+package community.flock.wirespec.extractor.maven
 
-import community.flock.wirespec.bytecode.extractor.ExtractConfig
-import community.flock.wirespec.bytecode.extractor.ExtractLog
-import community.flock.wirespec.bytecode.extractor.WirespecExtractor
-import community.flock.wirespec.bytecode.extractor.WirespecExtractorException
+import community.flock.wirespec.extractor.ExtractConfig
+import community.flock.wirespec.extractor.ExtractLog
+import community.flock.wirespec.extractor.WirespecExtractor
+import community.flock.wirespec.extractor.WirespecExtractorException
 import org.apache.maven.plugin.AbstractMojo
 import org.apache.maven.plugin.MojoExecutionException
 import org.apache.maven.plugins.annotations.LifecyclePhase
@@ -212,7 +212,7 @@ internal class MavenExtractLog(
 }
 ```
 
-`WirespecLifecycleParticipant` keeps the same Plexus `hint = "wirespec-bytecode-extractor"` and the same `DEFAULT_PHASE = "process-classes"`; only its package changes to `community.flock.wirespec.bytecode.extractor.maven`. `META-INF/plexus/components.xml` updates `<implementation>` to the new FQN.
+`WirespecLifecycleParticipant` keeps the same Plexus `hint = "wirespec-extractor"` and the same `DEFAULT_PHASE = "process-classes"`; only its package changes to `community.flock.wirespec.extractor.maven`. `META-INF/plexus/components.xml` updates `<implementation>` to the new FQN.
 
 ## Build configuration changes
 
@@ -233,7 +233,7 @@ plugins {
 }
 
 description = "Spring → Wirespec extraction logic. Maven-agnostic; drives the Maven plugin."
-base.archivesName.set("wirespec-bytecode-extractor-core")
+base.archivesName.set("wirespec-extractor-core")
 
 kotlin {
     jvmToolchain(21)
@@ -266,9 +266,9 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
-            artifactId = "wirespec-bytecode-extractor-core"
+            artifactId = "wirespec-extractor-core"
             pom {
-                name.set("Wirespec Bytecode Extractor Core")
+                name.set("Wirespec Extractor Core")
                 description.set(project.description)
             }
         }
@@ -293,10 +293,10 @@ Identical to the current `plugin/build.gradle.kts` with these edits:
   - Keep: `compileOnly(libs.maven.plugin.api)`, `compileOnly(libs.maven.core)`, `compileOnly(libs.maven.plugin.annotations)`, `implementation(libs.kotlin.stdlib)`, `testImplementation(libs.maven.core)`, `testImplementation(libs.maven.plugin.api)`, `testImplementation(libs.junit.jupiter)`, `testImplementation(libs.kotest.assertions)`.
   - Remove: `implementation(libs.kotlin.reflect)`, `implementation(libs.classgraph)`, `implementation(libs.wirespec.core)`, `implementation(libs.wirespec.emitter)`, `implementation(libs.spring.web)`, `implementation(libs.spring.context)`, `implementation(libs.jackson.annotations)`, `implementation(libs.jakarta.validation)`, `implementation(libs.swagger.annotations)`, `testImplementation(libs.reactor.core)` — these moved with the code they support.
   - Add: `implementation(project(":extractor-core"))`.
-- The `mavenPlugin { artifactId.set("wirespec-bytecode-extractor-maven-plugin") ... }` block is unchanged.
+- The `mavenPlugin { artifactId.set("wirespec-extractor-maven-plugin") ... }` block is unchanged.
 - The buildscript `force(...)` block for ASM 9.7.1 stays (it's about Maven plugin descriptor generation, which still runs here).
 - `tasks.named<GenerateMavenPluginDescriptorTask>("generateMavenPluginDescriptor")` configuration stays (classesDirs patch, requiredJava/Maven patch).
-- The `META-INF/maven/<groupId>/wirespec-bytecode-extractor-maven-plugin/` jar-embedding block stays.
+- The `META-INF/maven/<groupId>/wirespec-extractor-maven-plugin/` jar-embedding block stays.
 
 ### `integration-tests/build.gradle.kts`
 
@@ -307,7 +307,7 @@ dependsOn(":extractor-maven-plugin:publishMavenPublicationToItLocalRepository")
 dependsOn(":extractor-core:publishMavenPublicationToItLocalRepository")
 ```
 
-The second is required because the Maven plugin's POM now declares `wirespec-bytecode-extractor-core` as a runtime dependency, and Maven will resolve it from the IT-local repo during fixture builds.
+The second is required because the Maven plugin's POM now declares `wirespec-extractor-core` as a runtime dependency, and Maven will resolve it from the IT-local repo during fixture builds.
 
 ## Behavior preserved (verification list)
 
@@ -321,7 +321,7 @@ These contracts are unchanged after the split. The implementation plan must veri
 | Controller collisions throw with the same message format | `ExtractMojoTest` (existing) |
 | `.ws` file contents are byte-identical | `FixtureBuildTest` verifiers (existing) |
 | Generated `HelpMojo` / `wirespec:help` still works | `mvn wirespec:help` smoke check in plan |
-| Plugin artifact coords unchanged (`community.flock.wirespec.bytecode:wirespec-bytecode-extractor-maven-plugin`) | Manual + integration-tests pom |
+| Plugin artifact coords unchanged (`community.flock.wirespec.extractor:wirespec-extractor-maven-plugin`) | Manual + integration-tests pom |
 | `requiredJavaVersion=21`, `requiredMavenVersion=3.9.0` in plugin.xml | `GenerateMavenPluginDescriptorTask` doLast (preserved) |
 
 ## Test strategy
@@ -359,13 +359,13 @@ The exact subset stays a decision for the implementation plan once the file is i
 
 ## Migration / compatibility notes
 
-- **Maven consumers:** no change. Same groupId, artifactId, goal prefix, goal name, default phase, lifecycle-extension behavior. The plugin's published POM gains a `<dependency>` on `wirespec-bytecode-extractor-core` (resolved automatically by Maven from the same repo as the plugin).
+- **Maven consumers:** no change. Same groupId, artifactId, goal prefix, goal name, default phase, lifecycle-extension behavior. The plugin's published POM gains a `<dependency>` on `wirespec-extractor-core` (resolved automatically by Maven from the same repo as the plugin).
 - **In-repo Gradle:** the `plugin` subproject is deleted. Anyone who has cached IDE references to `:plugin` will need to re-import.
-- **Future consumers of core:** can depend on `wirespec-bytecode-extractor-core` directly without dragging in the Maven plugin API. (Not exercised in this change; the Gradle/CLI/etc. consumers are out of scope.)
+- **Future consumers of core:** can depend on `wirespec-extractor-core` directly without dragging in the Maven plugin API. (Not exercised in this change; the Gradle/CLI/etc. consumers are out of scope.)
 
 ## Risks and open questions
 
 - **`Emitter.write()` signature change.** Returning `List<File>` is a minor public-API change inside the now-public core module. We've decided this is acceptable since `Emitter` is being newly published and there's no prior committed contract for it. The implementation plan will verify all `EmitterTest` callsites compile after the change.
 - **Plexus components.xml + new package.** The `<implementation>` FQN must be updated atomically with the package move; otherwise the lifecycle participant won't be discovered and `<extensions>true</extensions>` silently stops auto-binding. The implementation plan will verify this via the integration test (which has zero `<executions>`).
-- **`maven-plugin-development` Gradle plugin and the package move.** The descriptor generator scans `sourceSets.main.get().kotlin.classesDirectory`; moving the mojo to `…extractor.maven` doesn't affect what's scanned (the whole Kotlin output dir is still the scan root), but the generated `HelpMojo.java` is emitted into a package controlled by the `helpMojoPackage` Gradle setting (currently `community.flock.wirespec.bytecode.wirespec_bytecode_extractor_maven_plugin`). That package doesn't need to match the mojo's package, so no change there.
-- **No CHANGELOG/release-notes file exists.** When this is released, the relevant change message is "internal split into `wirespec-bytecode-extractor-core` + `wirespec-bytecode-extractor-maven-plugin`; no behavior change for Maven users."
+- **`maven-plugin-development` Gradle plugin and the package move.** The descriptor generator scans `sourceSets.main.get().kotlin.classesDirectory`; moving the mojo to `…extractor.maven` doesn't affect what's scanned (the whole Kotlin output dir is still the scan root), but the generated `HelpMojo.java` is emitted into a package controlled by the `helpMojoPackage` Gradle setting (currently `community.flock.wirespec.extractor.wirespec_bytecode_extractor_maven_plugin`). That package doesn't need to match the mojo's package, so no change there.
+- **No CHANGELOG/release-notes file exists.** When this is released, the relevant change message is "internal split into `wirespec-extractor-core` + `wirespec-extractor-maven-plugin`; no behavior change for Maven users."
