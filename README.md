@@ -3,8 +3,12 @@
 [![Maven plugin (Maven Central)](https://img.shields.io/maven-central/v/community.flock.wirespec.bytecode/wirespec-bytecode-extractor-maven-plugin?label=maven-plugin)](https://central.sonatype.com/artifact/community.flock.wirespec.bytecode/wirespec-bytecode-extractor-maven-plugin)
 [![Gradle plugin (Maven Central)](https://img.shields.io/maven-central/v/community.flock.wirespec.bytecode.extractor/community.flock.wirespec.bytecode.extractor.gradle.plugin?label=gradle-plugin)](https://central.sonatype.com/artifact/community.flock.wirespec.bytecode.extractor/community.flock.wirespec.bytecode.extractor.gradle.plugin)
 
-A Maven and Gradle plugin that scans a Spring Boot application's compiled classes and emits
-[Wirespec](https://wirespec.io) (`.ws`) files describing its HTTP endpoints and DTO types.
+A Maven and Gradle plugin that scans a JVM application's compiled classes and emits
+[Wirespec](https://wirespec.io) (`.ws`) files describing its API. It reads Spring MVC /
+WebFlux controllers and functional routes, JAX-RS / OpenAPI resources, and Ktor server
+and client code for HTTP endpoints, plus Kafka, JMS, RabbitMQ, Pulsar, and Spring
+Integration listeners and producers as messaging channels — along with the DTO types
+they reference.
 
 ## Usage (Maven)
 
@@ -121,9 +125,10 @@ tasks.withType<JavaCompile>().configureEach {
 wirespecExtractor {
     basePackage.set("com.acme.api")
 
-    // optional — both default to true
+    // optional — all default to true. Disable a path to extract only the others.
     // extractSpring.set(true)
     // extractOpenApi.set(true)
+    // extractKtor.set(true)
 }
 ```
 
@@ -165,8 +170,9 @@ writes `.ws` files into `build/wirespec/`. To trigger it directly:
   the OpenAPI detail (parameters, request body, responses, schemas, operation
   names) is driven entirely by swagger/OpenAPI annotations. See
   [JAX-RS resources](#jax-rs-resources-swagger-driven).
-- Spring Kafka listeners and producers — emitted as Wirespec
-  `channel` definitions. See [Kafka extraction](#kafka-extraction).
+- Messaging listeners and producers — Spring Kafka, JMS, RabbitMQ, Spring
+  Pulsar, and Spring Integration — emitted as Wirespec `channel` definitions.
+  See [Messaging extraction](#messaging-extraction-kafka-jms-rabbitmq-pulsar-spring-integration).
 - Ktor server routing trees (`routing { route("/users") { get { … } } }`) and
   Ktor client request calls (`client.post("/users") { setBody(dto) }.body()`).
   See [Ktor extraction](#ktor-extraction-server--client).
@@ -378,31 +384,51 @@ The Spring and JAX-RS/OpenAPI paths run independently and can be toggled via
 extract only the other. See the [Maven](#usage-maven) and [Gradle](#usage-gradle)
 configuration above.
 
-### Kafka extraction
+### Messaging extraction (Kafka, JMS, RabbitMQ, Pulsar, Spring Integration)
 
-In addition to HTTP endpoints, the extractor discovers Spring Kafka
-listeners and producers and emits them as Wirespec `channel` definitions.
+In addition to HTTP endpoints, the extractor discovers messaging listeners and
+producers and emits them as Wirespec `channel` definitions. Extraction is driven
+by a per-broker descriptor table, so the same scanners cover **Spring Kafka,
+JMS, RabbitMQ, Spring Pulsar, and Spring Integration**:
 
-- **Consumers**: methods annotated with `@KafkaListener`, and methods
-  annotated with `@KafkaHandler` inside a class-level `@KafkaListener`.
-  The payload type is taken from the `@Payload` parameter, or the single
-  non-meta parameter, with `ConsumerRecord<K, V>`, `Message<T>`, and
-  `List<T>` (batch) unwrapped to the value type.
+| Broker            | Listener annotation(s)                 | Producer call                        |
+| ----------------- | -------------------------------------- | ------------------------------------ |
+| Kafka             | `@KafkaListener`, `@KafkaHandler`      | `KafkaTemplate.send(...)`            |
+| JMS               | `@JmsListener`                         | `JmsTemplate.convertAndSend(...)`   |
+| RabbitMQ          | `@RabbitListener`, `@RabbitHandler`    | `RabbitTemplate.convertAndSend(...)` |
+| Pulsar            | `@PulsarListener`                      | `PulsarTemplate.send/sendAsync(...)` |
+| Spring Integration | `@ServiceActivator`                   | — (listener-only)                    |
 
-- **Producers**: methods that call `KafkaTemplate.send(...)`. The value
-  type is recovered from the `KafkaTemplate<K, V>` field's generic
-  signature. Each enclosing method produces one channel.
+- **Consumers**: methods annotated with the broker's listener annotation, and —
+  for Kafka and Rabbit — methods annotated with the class-level multi-handler
+  annotation (`@KafkaHandler` / `@RabbitHandler`). The payload type is taken from
+  the `@Payload` parameter, or the single non-meta parameter (Spring `@Header` /
+  `@Headers` arguments and broker meta types such as `Acknowledgment`,
+  `jakarta.jms.Message`, `amqp.core.Message`, or the Pulsar `Consumer` are
+  ignored). Spring's `Message<T>` and `List<T>` (batch) wrappers, plus
+  broker-specific record wrappers (Kafka `ConsumerRecord<K, V>`, Pulsar
+  `Message<T>` / `Messages<T>`), are unwrapped to the value type.
+
+- **Producers**: methods that call the broker's send method. For generic
+  templates (Kafka, Pulsar) the value type is recovered from the
+  `KafkaTemplate<K, V>` / `PulsarTemplate<T>` field's generic signature; for
+  non-generic templates (JMS, Rabbit) it is recovered from the send-call
+  argument type. Each enclosing method produces one channel (suffixed with the
+  value type when a method sends more than one type). Spring Integration is
+  listener-only — it has no producer template.
 
 Channels are named after the handler/sender method (`onOrderCreated` →
 `OnOrderCreated`) and grouped into the `.ws` file of the owning class —
-the same convention used for HTTP endpoints. Topic names are not read;
-they are typically property placeholders at extract time. Spring Kafka
-does not need to be on the extractor's classpath — extraction cleanly
-no-ops in projects that don't use it.
+the same convention used for HTTP endpoints. Destination names (topics, queues,
+exchanges) are not read; they are typically property placeholders at extract
+time. The broker libraries do not need to be on the extractor's classpath —
+each broker is matched by fully-qualified name and cleanly no-ops in projects
+that don't use it.
 
 **Out of scope (v1):** `@SendTo` on listener return values; producers
-passing `ProducerRecord<K, V>` or `Message<?>` to `send(...)`; keys,
-headers, consumer groups, and topic-to-channel name resolution.
+passing pre-built records (`ProducerRecord<K, V>`, `Message<?>`) to the send
+call; keys, headers, consumer groups, and destination-to-channel name
+resolution.
 
 ### Ktor extraction (server + client)
 
