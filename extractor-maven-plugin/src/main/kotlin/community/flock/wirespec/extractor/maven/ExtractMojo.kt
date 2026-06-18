@@ -20,7 +20,7 @@ import java.io.File
 )
 class ExtractMojo : AbstractMojo() {
 
-    @Parameter(required = true, property = "wirespec.output")
+    @Parameter(property = "wirespec.output", defaultValue = "\${project.build.directory}/wirespec")
     lateinit var output: File
 
     @Parameter(property = "wirespec.basePackage")
