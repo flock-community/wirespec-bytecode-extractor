@@ -21,7 +21,7 @@ auto-binds to `process-classes`:
     <plugin>
       <groupId>community.flock.wirespec.extractor</groupId>
       <artifactId>wirespec-extractor-maven-plugin</artifactId>
-      <version>0.0.3</version>
+      <version>0.0.15</version>
       <extensions>true</extensions>
       <configuration>
         <!-- optional — defaults to ${project.build.directory}/wirespec -->
@@ -70,7 +70,7 @@ mvn wirespec:extract
 ```kotlin
 plugins {
     kotlin("jvm") version "2.1.20"
-    id("community.flock.wirespec.extractor") version "0.0.3"
+    id("community.flock.wirespec.extractor") version "0.0.15"
 }
 
 dependencies {
@@ -105,7 +105,7 @@ wirespecExtractor {
 ```kotlin
 plugins {
     java
-    id("community.flock.wirespec.extractor") version "0.0.3"
+    id("community.flock.wirespec.extractor") version "0.0.15"
 }
 
 java {
