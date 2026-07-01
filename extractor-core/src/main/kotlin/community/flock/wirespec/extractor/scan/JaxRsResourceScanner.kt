@@ -46,7 +46,10 @@ object JaxRsResourceScanner {
             return PATH_ANNOTATIONS
                 .flatMap { result.getClassesWithAnnotation(it) }
                 .distinctBy { it.name }
-                .filter { ci -> ci.isStandardClass && !ci.isAbstract && !ci.isInterface }
+                // Accept concrete resource classes and resource interfaces (including Kotlin
+                // `fun interface`s), which are an idiomatic way to declare JAX-RS resources.
+                // Annotation types carrying `@Path` (e.g. custom meta-annotations) are excluded.
+                .filter { ci -> !ci.isAnnotation && (ci.isInterface || (ci.isStandardClass && !ci.isAbstract)) }
                 .filter { ci -> FRAMEWORK_EXCLUSIONS.none { ci.name.startsWith("$it.") } }
                 .filter { ci -> basePackage == null || ci.name.startsWith("$basePackage.") || ci.name == basePackage }
                 .mapNotNull { ci ->

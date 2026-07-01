@@ -44,6 +44,25 @@ class JaxRsExtractionTest {
     }
 
     @Test
+    fun `extracts a ws file from a JAX-RS resource declared as a fun interface`(@TempDir tmp: Path) {
+        val out = File(tmp.toFile(), "ws").apply { mkdirs() }
+        val result = WirespecExtractor.extract(
+            ExtractConfig(
+                classesDirectories = listOf(jaxrsClassesDir()),
+                runtimeClasspath = emptyList(),
+                outputDirectory = out,
+                basePackage = "community.flock.wirespec.extractor.fixtures.jaxrs",
+            )
+        )
+
+        result.filesWritten.map { it.name } shouldContain "SomeApi.ws"
+
+        val ws = result.filesWritten.single { it.name == "SomeApi.ws" }.readText()
+        ws shouldContain "endpoint GetSome GET /api"
+        ws shouldContain "UserDto"
+    }
+
+    @Test
     fun `extractOpenApi=false skips JAX-RS resources`(@TempDir tmp: Path) {
         val out = File(tmp.toFile(), "ws").apply { mkdirs() }
         val result = WirespecExtractor.extract(
